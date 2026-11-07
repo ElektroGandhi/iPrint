@@ -11,6 +11,7 @@ from homeassistant.const import ATTR_DEVICE_ID, CONF_ADDRESS, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import config_validation as cv, device_registry as dr
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import ConfigType
 
 from .const import DENSITIES, DOMAIN, SERVICE_FEED, SERVICE_PRINT_IMAGE, SERVICE_PRINT_TEXT
@@ -18,6 +19,7 @@ from .coordinator import PhomemoCoordinator
 from .render import render_image, render_text
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.NOTIFY, Platform.SELECT, Platform.SENSOR]
+RETRY_AFTER_SETUP = 45
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 type PhomemoConfigEntry = ConfigEntry[PhomemoCoordinator]
@@ -81,6 +83,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: PhomemoConfigEntry) -> b
     await coordinator.async_refresh()
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    if not coordinator.last_update_success:
+        # The setup dialog has just talked to the printer, and it refuses connections for up to 32 s after one.
+        async def _retry(_now) -> None:
+            await coordinator.async_refresh()
+
+        entry.async_on_unload(async_call_later(hass, RETRY_AFTER_SETUP, _retry))
     return True
 
 

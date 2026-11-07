@@ -133,7 +133,8 @@ def _flaky(monkeypatch, failures):
         def connect(self, _a):
             calls.append(1)
             if len(calls) <= len(failures):
-                raise OSError(failures[len(calls) - 1], "x")
+                failure = failures[len(calls) - 1]
+                raise failure if isinstance(failure, OSError) else OSError(failure, "x")
 
         def close(self):
             pass
@@ -162,3 +163,10 @@ def test_other_errors_are_not_retried(monkeypatch):
     with pytest.raises(PrinterUnreachable):
         Printer("x")._connect(patience=30)
     assert len(calls) == 1
+
+
+def test_socket_timeout_is_retried(monkeypatch):
+    """socket.settimeout raises TimeoutError("timed out") with errno None. Real failure, 07.11.2026."""
+    calls = _flaky(monkeypatch, [TimeoutError("timed out")])
+    assert Printer("x")._connect(patience=5)
+    assert len(calls) == 2

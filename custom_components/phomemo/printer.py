@@ -17,7 +17,7 @@ CONNECT_TIMEOUT = 15
 # Measured right after a disconnect: EBUSY at first, then EHOSTDOWN for up to 32 s, from a printer that is on and
 # working. A failed attempt takes about 5 s. So one failure means nothing, and only a job is worth a long wait.
 PATIENCE_JOB = 45
-PATIENCE_POLL = 12
+PATIENCE_POLL = 20
 _RETRY_ERRNOS = {errno.EBUSY, errno.EHOSTDOWN, errno.ETIMEDOUT, errno.ECONNREFUSED}
 ANSWER_SECONDS = 0.6
 CHUNK = 1024
@@ -69,7 +69,9 @@ class Printer:
                 sock.connect((self.address, self.channel))
             except OSError as err:
                 sock.close()
-                if err.errno not in _RETRY_ERRNOS or time.monotonic() >= deadline:
+                # A socket timeout carries no errno, so it has to be named on its own (seen on the real printer).
+                retry = isinstance(err, TimeoutError) or err.errno in _RETRY_ERRNOS
+                if not retry or time.monotonic() >= deadline:
                     raise PrinterUnreachable(f"Printer {self.address} not reachable: {err}") from err
                 time.sleep(1)
             else:
