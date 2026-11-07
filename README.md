@@ -1,157 +1,157 @@
-<p align="center"><img src="docs/images/logo.png" width="128" alt="iPrint logo"></p>
+<p align="center"><img src="docs/images/logo.png" width="128" alt="iPrint-Logo"></p>
 
 <h1 align="center">iPrint</h1>
 
-<p align="center"><b>Your Phomemo T02 thermal printer, set free.</b><br>
-Print from Home Assistant. No app, no account, no cloud, no ads.</p>
+<p align="center"><b>Dein Phomemo-T02-Thermodrucker, befreit.</b><br>
+Drucken aus Home Assistant. Ohne App, ohne Konto, ohne Cloud, ohne Werbung.</p>
 
 <p align="center">
   <img alt="HACS custom" src="https://img.shields.io/badge/HACS-custom-41BDF5">
   <img alt="Home Assistant 2025.6+" src="https://img.shields.io/badge/Home%20Assistant-2025.6%2B-18BCF2">
-  <img alt="Local only" src="https://img.shields.io/badge/cloud-none-0B6A70">
-  <img alt="License MIT" src="https://img.shields.io/badge/license-MIT-0B6A70">
+  <img alt="Nur lokal" src="https://img.shields.io/badge/Cloud-keine-0B6A70">
+  <img alt="Lizenz MIT" src="https://img.shields.io/badge/Lizenz-MIT-0B6A70">
 </p>
 
-<p align="center"><img src="docs/images/printing.gif" width="640" alt="Animation: a shopping list comes out of a small thermal printer"></p>
+<p align="center"><img src="docs/images/printing.gif" width="640" alt="Animation: Eine Einkaufsliste läuft aus einem kleinen Thermodrucker"></p>
 
-<p align="center"><sub>A rendered illustration, not a product photo. The text on the paper is the real output of this integration.</sub></p>
+<p align="center"><sub>Eine gerenderte Illustration, kein Produktfoto. Der Text auf dem Papier ist die echte Ausgabe dieser Integration.</sub></p>
 
-<p align="center"><a href="README.de.md">Deutsch</a> · <a href="docs/RECIPES.md">Recipes</a> · <a href="docs/PROTOCOL.md">Protocol</a> · <a href="docs/WHY.md">Why this exists</a></p>
+<p align="center"><a href="README.en.md">English</a> · <a href="docs/RECIPES.md">Rezepte</a> · <a href="docs/PROTOCOL.md">Protokoll</a> · <a href="docs/WHY.md">Warum es das gibt</a></p>
 
-## Why
+## Warum
 
-The T02 is a simple machine: 48 bytes per row of dots over a serial Bluetooth link. Officially, you can only use it through
-the vendor's phone app, a 134 MB download that ships with an advertising system, paid tiers, five AI features and three
-tracking kits. [The evidence, and a script to count it yourself, is here.](docs/WHY.md)
+Der T02 ist eine einfache Maschine: 48 Bytes pro Punktzeile über eine serielle Bluetooth-Verbindung. Offiziell lässt er sich nur
+über die Handy-App des Herstellers nutzen, einen 134-MB-Download mit Werbesystem, Bezahlstufen, fünf KI-Funktionen und drei
+Tracking-Baukästen. [Die Belege und ein Skript zum Selbstnachzählen stehen hier.](docs/WHY.md)
 
-iPrint replaces all of that with under 1000 lines of Python that talk to the printer directly and to nothing else.
+iPrint ersetzt das durch weniger als 1000 Zeilen Python, die direkt mit dem Drucker sprechen und mit niemandem sonst.
 
-## What it does
+## Was es kann
 
 | | |
 |---|---|
-| 🧾 **Print from any automation** | `notify.send_message` prints. Anything that can notify you can now put it on paper. |
-| ✍️ **Text** | Word wrap, title, size and darkness. Umlauts, €, arrows and checkboxes print properly. |
-| 🖼️ **Pictures** | Scaled to the paper and dithered for thermal print. |
-| 🔎 **Knows the printer's state** | Battery, lid, paper and the queue as Home Assistant entities. |
-| 🕓 **Waits for the printer** | Printer off, lid open or roll empty? Up to 5 jobs wait and print by themselves when it is ready, even after a Home Assistant restart. |
-| ✅ **Honest about results** | A job only counts as done when the printer reports it. A full queue is an error, never a silently lost job. |
-| 🛡️ **Safe by default** | Jobs stop at 4000 rows (about 50 cm), so a runaway automation cannot empty the roll. |
+| 🧾 **Drucken aus jeder Automation** | `notify.send_message` druckt. Alles, was dich benachrichtigen kann, bringt es jetzt auch aufs Papier. |
+| ✍️ **Text** | Zeilenumbruch, Überschrift, Größe und Druckstärke. Umlaute, €, Pfeile und Kästchen kommen richtig heraus. |
+| 🖼️ **Bilder** | Auf Papierbreite skaliert und für den Thermodruck gerastert. |
+| 🔎 **Kennt den Zustand** | Akku, Klappe, Papier und Warteschlange als Entitäten in Home Assistant. |
+| 🕓 **Wartet auf den Drucker** | Drucker aus, Klappe offen oder Rolle leer? Bis zu 5 Aufträge warten und drucken von selbst, sobald es geht, auch nach einem Neustart von Home Assistant. |
+| ✅ **Ehrlich beim Ergebnis** | Ein Druck gilt erst als fertig, wenn der Drucker das meldet. Eine volle Warteschlange ist ein Fehler, nie ein lautlos verlorener Auftrag. |
+| 🛡️ **Sicher voreingestellt** | Bei 4000 Zeilen (etwa 50 cm) ist Schluss, damit eine fehlgeleitete Automation nicht die Rolle leert. |
 
-## What you can print
+## Was du drucken kannst
 
 <table>
 <tr>
-<td align="center"><img src="docs/images/print-receipt.png" width="230" alt="A shopping list"><br><sub>Shopping list</sub></td>
-<td align="center"><img src="docs/images/print-morning.png" width="230" alt="A morning summary"><br><sub>Morning summary</sub></td>
-<td align="center"><img src="docs/images/print-alert.png" width="230" alt="A water alarm"><br><sub>Alarm on paper</sub></td>
+<td align="center"><img src="docs/images/print-receipt.png" width="230" alt="Eine Einkaufsliste"><br><sub>Einkaufsliste</sub></td>
+<td align="center"><img src="docs/images/print-morning.png" width="230" alt="Ein Morgenzettel"><br><sub>Morgenzettel</sub></td>
+<td align="center"><img src="docs/images/print-alert.png" width="230" alt="Ein Wasseralarm"><br><sub>Alarm auf Papier</sub></td>
 </tr>
 <tr>
-<td align="center"><img src="docs/images/print-label.png" width="230" alt="A pantry label"><br><sub>Label</sub></td>
-<td align="center"><img src="docs/images/print-dither.png" width="230" alt="A dithered gradient"><br><sub>Picture, dithered</sub></td>
-<td align="center"><img src="docs/images/closeup.png" width="230" alt="Rendered printer from above"><br><sub>Rendered model</sub></td>
+<td align="center"><img src="docs/images/print-label.png" width="230" alt="Ein Vorratsetikett"><br><sub>Etikett</sub></td>
+<td align="center"><img src="docs/images/print-dither.png" width="230" alt="Ein gerasterter Verlauf"><br><sub>Bild, gerastert</sub></td>
+<td align="center"><img src="docs/images/closeup.png" width="230" alt="Gerendertes Druckermodell von oben"><br><sub>Gerendertes Modell</sub></td>
 </tr>
 </table>
 
-<sub>These are the exact dots the code sends to the printer, generated by <code>tools/render/samples.py</code>. Automations for them are in the <a href="docs/RECIPES.md">recipes</a>.</sub>
+<sub>Das sind genau die Punkte, die der Code an den Drucker schickt, erzeugt mit <code>tools/render/samples.py</code>. Automationen dazu stehen in den <a href="docs/RECIPES.md">Rezepten</a>.</sub>
 
-## Quick start
+## Schnellstart
 
-**You need** a Bluetooth adapter that does classic Bluetooth (BR/EDR) on the machine running Home Assistant.
-ESPHome Bluetooth proxies will not work, because they only carry BLE. Tested on Home Assistant OS.
+**Du brauchst** einen Bluetooth-Adapter mit klassischem Bluetooth (BR/EDR) an dem Rechner, auf dem Home Assistant läuft.
+ESPHome-Bluetooth-Proxys gehen nicht, weil sie nur BLE weiterleiten. Getestet auf Home Assistant OS.
 
-1. Copy `custom_components/iprint` to your `config/custom_components`, or add this repository to HACS as a custom
-   repository. Then restart Home Assistant.
-2. Switch the printer on. On the Home Assistant host, find its address:
+1. `custom_components/iprint` nach `config/custom_components` kopieren oder dieses Repository in HACS als benutzerdefiniertes
+   Repository eintragen. Danach Home Assistant neu starten.
+2. Drucker einschalten. Auf dem Home-Assistant-Host die Adresse suchen:
    ```
    bluetoothctl scan bredr
    ```
-   Look for a device named `T02`. No pairing is needed.
-3. Go to **Settings → Devices & services → Add integration → iPrint** and enter the address.
-4. Print:
+   Gesucht ist ein Gerät namens `T02`. Eine Kopplung ist nicht nötig.
+3. **Einstellungen → Geräte & Dienste → Integration hinzufügen → iPrint** öffnen und die Adresse eintragen.
+4. Drucken:
    ```yaml
    action: notify.send_message
    target:
-     entity_id: notify.phomemo_t02_print
+     entity_id: notify.phomemo_t02_drucken
    data:
-     title: Hello
-     message: Printed by Home Assistant
+     title: Hallo
+     message: Gedruckt von Home Assistant
    ```
 
-Entity names follow your Home Assistant language. In German, the one above is `notify.phomemo_t02_drucken`.
+Die Entitätsnamen folgen der Sprache deines Home Assistant. Auf Englisch heißt die obige `notify.phomemo_t02_print`.
 
-## Actions
+## Aktionen
 
-| Action | Fields | |
+| Aktion | Felder | |
 |---|---|---|
-| `notify.send_message` | `message`, `title` | Print text. |
-| `iprint.print_text` | `text`, `title`, `size`, `density` | Print text with all the options. |
-| `iprint.print_image` | `path`, `density` | Print a picture. The folder must be in [`allowlist_external_dirs`](https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs). |
-| `iprint.feed` | | Advance the paper. |
-| `iprint.clear_queue` | | Remove all waiting jobs. |
+| `notify.send_message` | `message`, `title` | Text drucken. |
+| `iprint.print_text` | `text`, `title`, `size`, `density` | Text mit allen Optionen drucken. |
+| `iprint.print_image` | `path`, `density` | Bild drucken. Der Ordner muss in [`allowlist_external_dirs`](https://www.home-assistant.io/integrations/homeassistant/#allowlist_external_dirs) stehen. |
+| `iprint.feed` | | Papier vorschieben. |
+| `iprint.clear_queue` | | Alle wartenden Aufträge entfernen. |
 
-## The queue
-
-```mermaid
-flowchart LR
-    A["New job"] --> B{"Printer<br>ready?"}
-    B -- yes --> C["Prints now"]
-    B -- no --> D{"Fewer than<br>5 waiting?"}
-    D -- yes --> E["Waits in the queue,<br>survives restarts"]
-    D -- no --> F["Error: queue full"]
-    E -- "checked every minute" --> B
-```
-
-So you can send a job and switch the printer on later. Within about a minute of switching on, waiting jobs print in the
-order they came in. An action on a printer that is away therefore succeeds as soon as the job is queued: the **Print queue**
-sensor shows what is waiting, and **Clear print queue** removes it. A job that loses its connection halfway is not repeated,
-because it could print twice. It is reported in the log instead.
-
-## How it works
+## Die Warteschlange
 
 ```mermaid
 flowchart LR
-    A["Automation<br>or dashboard"] --> B["iPrint<br>integration"]
-    B -- "text and pictures<br>become rows of dots" --> C["RFCOMM socket"]
-    C -- "Bluetooth classic" --> D["T02"]
-    D -- "status frames" --> C
-    C --> E["Battery, lid, paper<br>entities"]
+    A["Neuer Auftrag"] --> B{"Drucker<br>bereit?"}
+    B -- ja --> C["Druckt sofort"]
+    B -- nein --> D{"Weniger als<br>5 wartend?"}
+    D -- ja --> E["Wartet in der Warteschlange,<br>übersteht Neustarts"]
+    D -- nein --> F["Fehler: Warteschlange voll"]
+    E -- "jede Minute geprüft" --> B
 ```
 
-Home Assistant's Bluetooth stack only speaks BLE, and the T02 only prints over Bluetooth classic. So iPrint opens a plain
-Linux RFCOMM socket from inside Home Assistant. There is nothing else to install, no add-on and no extra device.
+Du kannst also einen Auftrag schicken und den Drucker später einschalten. Etwa eine Minute nach dem Einschalten kommen wartende
+Aufträge in der Reihenfolge ihres Eingangs. Eine Aktion an einen abwesenden Drucker gilt deshalb als erfolgreich, sobald der Auftrag
+in der Warteschlange liegt: Der Sensor **Warteschlange** zeigt, was wartet, **Warteschlange leeren** entfernt es. Ein Auftrag, der
+mittendrin die Verbindung verliert, wird nicht wiederholt, weil er sonst doppelt käme. Er steht stattdessen im Protokoll.
 
-The connection stays open, as it does in the phone app, because this printer refuses new connections for a while after
-each disconnect. Measured: one held connection answered 12 of 12 status requests and printed at once, while reconnecting
-every few seconds succeeded 3 times in 15.
+## Wie es funktioniert
 
-The whole protocol is written down in [docs/PROTOCOL.md](docs/PROTOCOL.md), including what was measured on a real printer
-and what was only read from the app.
+```mermaid
+flowchart LR
+    A["Automation<br>oder Dashboard"] --> B["iPrint-<br>Integration"]
+    B -- "Text und Bilder<br>werden Punktzeilen" --> C["RFCOMM-Socket"]
+    C -- "klassisches Bluetooth" --> D["T02"]
+    D -- "Statusmeldungen" --> C
+    C --> E["Akku, Klappe, Papier<br>als Entitäten"]
+```
 
-## Good to know
+Der Bluetooth-Teil von Home Assistant spricht nur BLE, der T02 druckt nur über klassisches Bluetooth. Deshalb öffnet iPrint aus
+Home Assistant heraus einen gewöhnlichen Linux-RFCOMM-Socket. Mehr braucht es nicht: kein Add-on, kein Zusatzgerät.
 
-- **Tested on one printer:** a T02 with firmware 1.0.0. Other Phomemo models may use other commands. Reports welcome.
-- **The phone app cannot connect at the same time,** because the printer takes one client at a time. Disable the
-  integration in Home Assistant to use the app.
-- **The printer falls asleep** after a while without contact. Its radio then still accepts connections, but nothing
-  answers. Jobs wait in the queue until you switch the printer off and on.
-- **Sensors show *unavailable*** while the printer is off. That is normal.
-- **The battery reading jumps** when the charger is plugged in, so treat it as a rough guide.
+Die Verbindung bleibt offen, wie in der Handy-App, denn dieser Drucker lehnt nach jedem Trennen eine Weile neue Verbindungen ab.
+Gemessen: Eine gehaltene Verbindung beantwortete 12 von 12 Statusabfragen und druckte sofort, Neuverbinden im Abstand weniger
+Sekunden klappte 3 von 15 Mal.
 
-## Development
+Das ganze Protokoll steht in [docs/PROTOCOL.md](docs/PROTOCOL.md), auch was am echten Drucker gemessen und was nur aus der App
+gelesen wurde.
+
+## Gut zu wissen
+
+- **Getestet mit einem Drucker:** ein T02 mit Firmware 1.0.0. Andere Phomemo-Modelle nutzen eventuell andere Befehle. Berichte sind willkommen.
+- **Die Handy-App kann nicht gleichzeitig verbinden,** weil der Drucker nur einen Client annimmt. Für die App die Integration in
+  Home Assistant deaktivieren.
+- **Der Drucker schläft** nach einiger Zeit ohne Kontakt ein. Sein Funkmodul nimmt dann weiter Verbindungen an, aber nichts
+  antwortet. Aufträge warten in der Warteschlange, bis du den Drucker aus- und wieder einschaltest.
+- **Sensoren stehen auf *nicht verfügbar***, solange der Drucker aus ist. Das ist normal.
+- **Der Akkuwert springt**, wenn das Ladegerät eingesteckt wird. Er ist nur ein grober Anhaltspunkt.
+
+## Entwicklung
 
 ```
 pip install pytest pillow
 pytest
 ```
 
-The tests use frames read off a real printer, and a scripted socket that reproduces the failures seen on one. The images
-in this README can all be rebuilt from source: see [tools/render](tools/render/README.md). Contributions are welcome:
-see [CONTRIBUTING.md](CONTRIBUTING.md).
+Die Tests nutzen Antworten eines echten Druckers und einen geskripteten Socket, der die dort beobachteten Fehler nachstellt. Alle
+Bilder dieses README lassen sich aus dem Quelltext neu bauen: siehe [tools/render](tools/render/README.md). Beiträge sind willkommen:
+siehe [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Credits
 
 *Ideas by BLOTTO, vibed by OPUS.*
 
-MIT licensed. Includes DejaVu Sans, see [`fonts/LICENSE`](custom_components/iprint/fonts/LICENSE). Not affiliated with
-Phomemo. "Phomemo" and "T02" are used only to say which printer this works with.
+MIT-Lizenz. Enthält DejaVu Sans, siehe [`fonts/LICENSE`](custom_components/iprint/fonts/LICENSE). Keine Verbindung zu Phomemo.
+„Phomemo“ und „T02“ stehen hier nur, um zu sagen, mit welchem Drucker das funktioniert.
