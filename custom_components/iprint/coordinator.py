@@ -95,6 +95,7 @@ class IPrintCoordinator(DataUpdateCoordinator[Status]):
                 _LOGGER.info("Queued print job '%s': %s", label, err)
                 await self._async_enqueue(self._new_job(rows, count, density, label))
                 self.update_interval = self._away_interval()
+                self._schedule_refresh()  # a new interval only applies to the next run; the planned one may be minutes off
                 return
             except PrinterError as err:
                 raise HomeAssistantError(str(err)) from err
