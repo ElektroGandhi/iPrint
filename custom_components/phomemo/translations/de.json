@@ -1,0 +1,125 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Phomemo T02",
+        "description": "Drucker einschalten und seine Bluetooth-Adresse eintragen. Die Suche von Home Assistant sieht nur BLE und findet den T02 deshalb nicht von selbst. Auf dem HA-Host: bluetoothctl scan bredr",
+        "data": {
+          "address": "Bluetooth-Adresse"
+        }
+      }
+    },
+    "error": {
+      "invalid_address": "Das ist keine Bluetooth-Adresse (AA:BB:CC:DD:EE:FF).",
+      "cannot_connect": "Der Drucker antwortet nicht. Ist er an und in Reichweite?"
+    },
+    "abort": {
+      "already_configured": "Dieser Drucker ist schon eingerichtet."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "lid_open": {
+        "name": "Klappe"
+      },
+      "paper_out": {
+        "name": "Papier leer"
+      }
+    },
+    "button": {
+      "feed": {
+        "name": "Papier vorschieben"
+      },
+      "test_page": {
+        "name": "Testseite drucken"
+      }
+    },
+    "notify": {
+      "printer": {
+        "name": "Drucken"
+      }
+    },
+    "select": {
+      "density": {
+        "name": "Druckstärke",
+        "state": {
+          "light": "Hell",
+          "normal": "Normal",
+          "dark": "Dunkel",
+          "darkest": "Sehr dunkel"
+        }
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Akku"
+      }
+    }
+  },
+  "selector": {
+    "density": {
+      "options": {
+        "light": "Hell",
+        "normal": "Normal",
+        "dark": "Dunkel",
+        "darkest": "Sehr dunkel"
+      }
+    }
+  },
+  "services": {
+    "print_text": {
+      "name": "Text drucken",
+      "description": "Druckt Text mit Zeilenumbruch.",
+      "fields": {
+        "text": {
+          "name": "Text",
+          "description": "Was gedruckt wird."
+        },
+        "title": {
+          "name": "Überschrift",
+          "description": "Größere Zeile über dem Text."
+        },
+        "size": {
+          "name": "Größe",
+          "description": "Schriftgröße in Punkten, 8 Punkte = 1 mm."
+        },
+        "density": {
+          "name": "Druckstärke",
+          "description": "Überschreibt die Einstellung für diesen Druck."
+        },
+        "device_id": {
+          "name": "Drucker",
+          "description": "Nur nötig bei mehreren Druckern."
+        }
+      }
+    },
+    "print_image": {
+      "name": "Bild drucken",
+      "description": "Skaliert ein Bild auf Papierbreite und rastert es.",
+      "fields": {
+        "path": {
+          "name": "Pfad",
+          "description": "Absoluter Pfad des Bildes; der Ordner muss in allowlist_external_dirs stehen."
+        },
+        "density": {
+          "name": "Druckstärke",
+          "description": "Überschreibt die Einstellung für diesen Druck."
+        },
+        "device_id": {
+          "name": "Drucker",
+          "description": "Nur nötig bei mehreren Druckern."
+        }
+      }
+    },
+    "feed": {
+      "name": "Papier vorschieben",
+      "description": "Schiebt das Papier ein Stück vor.",
+      "fields": {
+        "device_id": {
+          "name": "Drucker",
+          "description": "Nur nötig bei mehreren Druckern."
+        }
+      }
+    }
+  }
+}

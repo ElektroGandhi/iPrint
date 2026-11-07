@@ -1,0 +1,125 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Phomemo T02",
+        "description": "Switch the printer on and enter its Bluetooth address. Home Assistant's discovery only sees BLE, so the T02 cannot be found automatically. On the HA host: bluetoothctl scan bredr",
+        "data": {
+          "address": "Bluetooth address"
+        }
+      }
+    },
+    "error": {
+      "invalid_address": "That is not a Bluetooth address (AA:BB:CC:DD:EE:FF).",
+      "cannot_connect": "The printer did not answer. Is it on and in range?"
+    },
+    "abort": {
+      "already_configured": "This printer is already set up."
+    }
+  },
+  "entity": {
+    "binary_sensor": {
+      "lid_open": {
+        "name": "Lid"
+      },
+      "paper_out": {
+        "name": "Paper out"
+      }
+    },
+    "button": {
+      "feed": {
+        "name": "Feed paper"
+      },
+      "test_page": {
+        "name": "Print test page"
+      }
+    },
+    "notify": {
+      "printer": {
+        "name": "Print"
+      }
+    },
+    "select": {
+      "density": {
+        "name": "Print darkness",
+        "state": {
+          "light": "Light",
+          "normal": "Normal",
+          "dark": "Dark",
+          "darkest": "Darkest"
+        }
+      }
+    },
+    "sensor": {
+      "battery": {
+        "name": "Battery"
+      }
+    }
+  },
+  "selector": {
+    "density": {
+      "options": {
+        "light": "Light",
+        "normal": "Normal",
+        "dark": "Dark",
+        "darkest": "Darkest"
+      }
+    }
+  },
+  "services": {
+    "print_text": {
+      "name": "Print text",
+      "description": "Prints word-wrapped text.",
+      "fields": {
+        "text": {
+          "name": "Text",
+          "description": "What to print."
+        },
+        "title": {
+          "name": "Title",
+          "description": "Larger line above the text."
+        },
+        "size": {
+          "name": "Size",
+          "description": "Letter size in dots, 8 dots = 1 mm."
+        },
+        "density": {
+          "name": "Darkness",
+          "description": "Overrides the setting for this job."
+        },
+        "device_id": {
+          "name": "Printer",
+          "description": "Only needed with more than one printer."
+        }
+      }
+    },
+    "print_image": {
+      "name": "Print image",
+      "description": "Scales a picture to the paper width and dithers it.",
+      "fields": {
+        "path": {
+          "name": "Path",
+          "description": "Absolute path of the picture; the folder must be in allowlist_external_dirs."
+        },
+        "density": {
+          "name": "Darkness",
+          "description": "Overrides the setting for this job."
+        },
+        "device_id": {
+          "name": "Printer",
+          "description": "Only needed with more than one printer."
+        }
+      }
+    },
+    "feed": {
+      "name": "Feed paper",
+      "description": "Advances the paper a little.",
+      "fields": {
+        "device_id": {
+          "name": "Printer",
+          "description": "Only needed with more than one printer."
+        }
+      }
+    }
+  }
+}

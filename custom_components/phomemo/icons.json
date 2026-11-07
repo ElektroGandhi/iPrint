@@ -1,0 +1,22 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "paper_out": {"default": "mdi:paper-roll"}
+    },
+    "button": {
+      "feed": {"default": "mdi:arrow-up-bold"},
+      "test_page": {"default": "mdi:printer-check"}
+    },
+    "notify": {
+      "printer": {"default": "mdi:printer"}
+    },
+    "select": {
+      "density": {"default": "mdi:contrast-box"}
+    }
+  },
+  "services": {
+    "print_text": {"service": "mdi:printer"},
+    "print_image": {"service": "mdi:image"},
+    "feed": {"service": "mdi:arrow-up-bold"}
+  }
+}

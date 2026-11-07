@@ -1,0 +1,40 @@
+print_text:
+  fields:
+    text:
+      required: true
+      example: "Milk, eggs, butter"
+      selector:
+        text:
+          multiline: true
+    title:
+      example: "Shopping"
+      selector:
+        text:
+    size:
+      default: 28
+      selector:
+        number:
+          min: 14
+          max: 96
+          unit_of_measurement: "dots"
+    density: &density
+      selector:
+        select:
+          translation_key: density
+          options: [light, normal, dark, darkest]
+    device_id: &device
+      selector:
+        device:
+          integration: phomemo
+print_image:
+  fields:
+    path:
+      required: true
+      example: "/config/www/label.png"
+      selector:
+        text:
+    density: *density
+    device_id: *device
+feed:
+  fields:
+    device_id: *device
