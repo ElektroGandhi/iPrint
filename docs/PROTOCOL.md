@@ -8,6 +8,11 @@ How the T02 talks, read from the Android app (`com.quyin.phomemo` 4.1.1) and che
 Bluetooth classic, Serial Port Profile (`00001101-0000-1000-8000-00805F9B34FB`), RFCOMM channel 1. **Measured:** connects
 in 1.3 s with no pairing. The device advertises as `T02`, class `0x00100680` (printer).
 
+**Keep the connection open.** Measured: one held connection answered 12 of 12 questions over 6 minutes and printed at
+once. After a disconnect the printer refuses new connections with `EBUSY`, `EHOSTDOWN` or a timeout, sometimes for more
+than 30 s, and reconnecting every few seconds succeeded only 3 times in 15. An answer takes 0.4 to 4.8 s, and answers to
+several questions can arrive together, so read a stream of frames instead of expecting one answer per question.
+
 Home Assistant's Bluetooth integration is BLE-only, and the T02's name does not appear in a BLE scan. **Measured:** a raw
 `AF_BLUETOOTH` socket works inside the Home Assistant container on HA OS, which is what this integration uses. The app
 also knows a BLE path (`0000FF02`), but only uses it for its Wi-Fi printer family, not for the T02.
@@ -46,6 +51,18 @@ All answers are `1A`-frames. A single answer can carry a second, unrequested fra
 | — | `1A 35 xx` | `02` charging | app |
 
 `1F 11 63`, `5E`, `56`, `51` got no answer from this printer.
+
+## Setting
+
+| Command | Meaning | |
+|---|---|---|
+| `1B 4E 07 nn` | auto-off, `nn` * 5 min | app, never sent. It looks like the setter of `1F 11 0E`. |
+
+## Sleep
+
+After a while without contact the printer stops answering. **Measured:** the connection still succeeds, but no question gets
+an answer, not even after `1B 40`. Switching it off and on brings it back. One sign of this state was a user seeing it
+switched off while the radio still accepted connections.
 
 **Battery while charging:** the reading jumped from 4 % to 73 % within minutes of plugging in. It looks like it follows
 the voltage, so do not read it as a true level while charging.

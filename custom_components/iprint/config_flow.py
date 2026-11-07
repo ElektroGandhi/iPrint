@@ -30,11 +30,13 @@ class PhomemoConfigFlow(ConfigFlow, domain=DOMAIN):
             else:
                 await self.async_set_unique_id(address, raise_on_progress=False)
                 self._abort_if_unique_id_configured()
+                printer = Printer(address)
                 try:
-                    await self.hass.async_add_executor_job(Printer(address).read_status)
+                    await self.hass.async_add_executor_job(printer.read_status)
                 except PrinterError:
                     errors["base"] = "cannot_connect"
                 else:
+                    await self.hass.async_add_executor_job(printer.close)
                     return self.async_create_entry(title=f"T02 {address[-5:]}", data={CONF_ADDRESS: address})
         return self.async_show_form(step_id="user", errors=errors,
                                     data_schema=vol.Schema({vol.Required(CONF_ADDRESS): str}))

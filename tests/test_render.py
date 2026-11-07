@@ -1,8 +1,8 @@
 import pytest
 from PIL import Image
 
-from phomemo.protocol import BYTES_PER_ROW, MAX_ROWS, WIDTH_DOTS
-from phomemo.render import get_font, render_image, render_text, to_rows
+from iprint.protocol import BYTES_PER_ROW, MAX_ROWS, WIDTH_DOTS
+from iprint.render import get_font, render_image, render_text, to_rows
 
 
 def test_black_dot_on_the_left_is_the_high_bit():

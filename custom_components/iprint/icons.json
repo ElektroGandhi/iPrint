@@ -1,0 +1,49 @@
+{
+  "entity": {
+    "binary_sensor": {
+      "paper_out": {
+        "default": "mdi:paper-roll"
+      }
+    },
+    "button": {
+      "feed": {
+        "default": "mdi:arrow-up-bold"
+      },
+      "test_page": {
+        "default": "mdi:printer-check"
+      },
+      "clear_queue": {
+        "default": "mdi:playlist-remove"
+      }
+    },
+    "notify": {
+      "printer": {
+        "default": "mdi:printer"
+      }
+    },
+    "select": {
+      "density": {
+        "default": "mdi:contrast-box"
+      }
+    },
+    "sensor": {
+      "queue": {
+        "default": "mdi:tray-full"
+      }
+    }
+  },
+  "services": {
+    "print_text": {
+      "service": "mdi:printer"
+    },
+    "print_image": {
+      "service": "mdi:image"
+    },
+    "feed": {
+      "service": "mdi:arrow-up-bold"
+    },
+    "clear_queue": {
+      "service": "mdi:playlist-remove"
+    }
+  }
+}

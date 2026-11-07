@@ -58,36 +58,53 @@ class Status:
     cancelled: bool = False
 
 
-def parse_status(data: bytes, status: Status | None = None) -> Status:
-    """Read a stream of 0x1A frames. Stops at the first byte it cannot place instead of guessing."""
-    status = status or Status()
+def consume_status(data: bytes, status: Status) -> bytes:
+    """Apply every complete 0x1A frame to status and return what is left: an incomplete frame waits for its other half.
+
+    A byte it cannot place drops the rest of this read instead of guessing where the next frame starts.
+    """
     pos = 0
-    while pos + 2 <= len(data) and data[pos] == 0x1A:
+    while pos < len(data):
+        if data[pos] != 0x1A:
+            return b""
+        if pos + 2 > len(data):
+            return data[pos:]
         kind = data[pos + 1]
         length = _FRAME_LENGTH.get(kind)
-        if length is None or pos + 2 + length > len(data):
-            break
-        body = data[pos + 2:pos + 2 + length]
+        if length is None:
+            return b""
+        if pos + 2 + length > len(data):
+            return data[pos:]
+        _apply(kind, data[pos + 2:pos + 2 + length], status)
         pos += 2 + length
-        value = body[0]
-        if kind == 0x03:
-            status.overheated = {0xA8: False, 0xA9: True}.get(value, status.overheated)
-        elif kind == 0x04:
-            status.battery = _BATTERY_WARNING.get(value, value)
-        elif kind == 0x05:
-            status.lid_open = {0x98: False, 0x99: True}.get(value, status.lid_open)
-        elif kind == 0x06:
-            status.paper_out = value == 0x88
-        elif kind == 0x07:
-            status.firmware = ".".join(str(b) for b in body)
-        elif kind == 0x08:
-            status.serial = body.decode("ascii", "replace")
-        elif kind == 0x09:
-            status.auto_off_minutes = value * 5
-        elif kind == 0x0B:
-            status.cancelled = status.cancelled or value == 0xB8
-        elif kind == 0x0F:
-            status.print_ok = value == 0x0C
-        elif kind == 0x35:
-            status.charging = value == 0x02
+    return b""
+
+
+def parse_status(data: bytes, status: Status | None = None) -> Status:
+    status = status or Status()
+    consume_status(data, status)
     return status
+
+
+def _apply(kind: int, body: bytes, status: Status) -> None:
+    value = body[0]
+    if kind == 0x03:
+        status.overheated = {0xA8: False, 0xA9: True}.get(value, status.overheated)
+    elif kind == 0x04:
+        status.battery = _BATTERY_WARNING.get(value, value)
+    elif kind == 0x05:
+        status.lid_open = {0x98: False, 0x99: True}.get(value, status.lid_open)
+    elif kind == 0x06:
+        status.paper_out = value == 0x88
+    elif kind == 0x07:
+        status.firmware = ".".join(str(b) for b in body)
+    elif kind == 0x08:
+        status.serial = body.decode("ascii", "replace")
+    elif kind == 0x09:
+        status.auto_off_minutes = value * 5
+    elif kind == 0x0B:
+        status.cancelled = status.cancelled or value == 0xB8
+    elif kind == 0x0F:
+        status.print_ok = value == 0x0C
+    elif kind == 0x35:
+        status.charging = value == 0x02

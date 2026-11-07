@@ -32,6 +32,9 @@
       },
       "test_page": {
         "name": "Print test page"
+      },
+      "clear_queue": {
+        "name": "Clear print queue"
       }
     },
     "notify": {
@@ -53,6 +56,10 @@
     "sensor": {
       "battery": {
         "name": "Battery"
+      },
+      "queue": {
+        "name": "Print queue",
+        "unit_of_measurement": "jobs"
       }
     }
   },
@@ -114,6 +121,16 @@
     "feed": {
       "name": "Feed paper",
       "description": "Advances the paper a little.",
+      "fields": {
+        "device_id": {
+          "name": "Printer",
+          "description": "Only needed with more than one printer."
+        }
+      }
+    },
+    "clear_queue": {
+      "name": "Clear print queue",
+      "description": "Removes all jobs waiting for the printer.",
       "fields": {
         "device_id": {
           "name": "Printer",

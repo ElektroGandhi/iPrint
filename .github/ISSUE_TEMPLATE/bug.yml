@@ -1,0 +1,28 @@
+name: Something does not work
+description: A job failed, an entity is wrong, or setup did not finish
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: iPrint and Home Assistant version
+      placeholder: "iPrint 0.1.0, Home Assistant 2026.10"
+    validations:
+      required: true
+  - type: input
+    id: adapter
+    attributes:
+      label: Bluetooth adapter and install type
+      placeholder: "Realtek USB, Home Assistant OS"
+  - type: textarea
+    id: log
+    attributes:
+      label: Log lines
+      description: Please remove your printer's address and serial number first.
+      render: text

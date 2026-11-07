@@ -10,7 +10,8 @@ from .render import render_text
 
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
-    async_add_entities([PhomemoFeed(entry.runtime_data, "feed"), PhomemoTestPage(entry.runtime_data, "test_page")])
+    async_add_entities([PhomemoFeed(entry.runtime_data, "feed"), PhomemoTestPage(entry.runtime_data, "test_page"),
+                        PhomemoClearQueue(entry.runtime_data, "clear_queue")])
 
 
 class _AlwaysAvailable(PhomemoEntity):
@@ -28,4 +29,9 @@ class PhomemoTestPage(_AlwaysAvailable, ButtonEntity):
     async def async_press(self) -> None:
         when = datetime.now().strftime("%Y-%m-%d %H:%M")
         image = await self.hass.async_add_executor_job(render_text, f"Home Assistant\n{when}\nÄÖÜ äöü ß", "Phomemo T02")
-        await self.coordinator.async_print_image(image)
+        await self.coordinator.async_print_image(image, label="Test page")
+
+
+class PhomemoClearQueue(_AlwaysAvailable, ButtonEntity):
+    async def async_press(self) -> None:
+        await self.coordinator.async_clear_queue()

@@ -1,0 +1,28 @@
+name: New printer
+description: Tell us how iPrint works on a model or firmware not listed yet
+labels: [printer-report]
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Printer model and firmware
+      description: The firmware is shown on the device page in Home Assistant.
+      placeholder: "T02, 1.0.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result
+      options:
+        - Prints correctly
+        - Prints, but something is wrong
+        - Connects, does not print
+        - Does not connect
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: What looked wrong? A photo of the print helps a lot.

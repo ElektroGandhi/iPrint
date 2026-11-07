@@ -1,7 +1,7 @@
 """Frames below were read off a real T02 (firmware 1.0.0) unless a comment says otherwise."""
 import pytest
 
-from phomemo.protocol import BYTES_PER_ROW, MAX_ROWS, Status, density_commands, parse_status, raster_job
+from iprint.protocol import BYTES_PER_ROW, MAX_ROWS, Status, consume_status, density_commands, parse_status, raster_job
 
 
 def h(text):
@@ -82,3 +82,18 @@ def test_wrong_data_length():
 
 def test_darkest_uses_higher_energy():
     assert density_commands("darkest") == h("1f110204 1f113796")
+
+
+def test_a_frame_split_across_reads_is_kept():
+    s = Status()
+    rest = consume_status(h("1a 05 98 1a 04"), s)
+    assert s.lid_open is False and s.battery is None and rest == h("1a 04")
+    assert consume_status(rest + h("49"), s) == b"" and s.battery == 73
+
+
+def test_a_lone_first_byte_is_kept():
+    assert consume_status(h("1a"), Status()) == h("1a")
+
+
+def test_rubbish_is_dropped_not_kept_forever():
+    assert consume_status(h("ff 00"), Status()) == b""

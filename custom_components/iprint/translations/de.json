@@ -32,6 +32,9 @@
       },
       "test_page": {
         "name": "Testseite drucken"
+      },
+      "clear_queue": {
+        "name": "Warteschlange leeren"
       }
     },
     "notify": {
@@ -53,6 +56,10 @@
     "sensor": {
       "battery": {
         "name": "Akku"
+      },
+      "queue": {
+        "name": "Warteschlange",
+        "unit_of_measurement": "Aufträge"
       }
     }
   },
@@ -114,6 +121,16 @@
     "feed": {
       "name": "Papier vorschieben",
       "description": "Schiebt das Papier ein Stück vor.",
+      "fields": {
+        "device_id": {
+          "name": "Drucker",
+          "description": "Nur nötig bei mehreren Druckern."
+        }
+      }
+    },
+    "clear_queue": {
+      "name": "Warteschlange leeren",
+      "description": "Entfernt alle Aufträge, die auf den Drucker warten.",
       "fields": {
         "device_id": {
           "name": "Drucker",

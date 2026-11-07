@@ -22,4 +22,4 @@ class PhomemoNotify(PhomemoEntity, NotifyEntity):
             image = await self.hass.async_add_executor_job(render_text, message, title)
         except ValueError as err:
             raise ServiceValidationError(str(err)) from err
-        await self.coordinator.async_print_image(image)
+        await self.coordinator.async_print_image(image, label=title or message)

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="iPrint logo">
+  <title>iPrint</title>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#17A2A8"/><stop offset="1" stop-color="#0B6A70"/></linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="54" fill="url(#bg)"/>
+  <!-- paper: three printed lines, one ticked -->
+  <path d="M76 30h104v108H76z" fill="#FBF8F0"/>
+  <rect x="92" y="50" width="72" height="11" rx="5.5" fill="#22262A"/>
+  <rect x="92" y="74" width="50" height="8" rx="4" fill="#22262A" opacity=".62"/>
+  <rect x="92" y="94" width="62" height="8" rx="4" fill="#22262A" opacity=".62"/>
+  <!-- printer -->
+  <rect x="38" y="120" width="180" height="100" rx="26" fill="#F4F1EA"/>
+  <path d="M38 180h180v14a26 26 0 0 1-26 26H64a26 26 0 0 1-26-26z" fill="#0A5B60"/>
+  <rect x="70" y="134" width="116" height="8" rx="4" fill="#22262A"/>
+  <circle cx="190" cy="162" r="9" fill="#17A2A8"/>
+</svg>

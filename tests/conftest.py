@@ -8,13 +8,13 @@ import sys
 import types
 from pathlib import Path
 
-PKG = Path(__file__).resolve().parents[1] / "custom_components" / "phomemo"
+PKG = Path(__file__).resolve().parents[1] / "custom_components" / "iprint"
 
-_pkg = types.ModuleType("phomemo")
+_pkg = types.ModuleType("iprint")
 _pkg.__path__ = [str(PKG)]
-sys.modules["phomemo"] = _pkg
-for _name in ("const", "protocol", "render", "printer"):
-    _spec = importlib.util.spec_from_file_location(f"phomemo.{_name}", PKG / f"{_name}.py")
+sys.modules["iprint"] = _pkg
+for _name in ("const", "protocol", "render", "printer", "jobqueue"):
+    _spec = importlib.util.spec_from_file_location(f"iprint.{_name}", PKG / f"{_name}.py")
     _mod = importlib.util.module_from_spec(_spec)
-    sys.modules[f"phomemo.{_name}"] = _mod
+    sys.modules[f"iprint.{_name}"] = _mod
     _spec.loader.exec_module(_mod)

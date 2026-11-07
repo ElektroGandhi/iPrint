@@ -25,7 +25,7 @@ print_text:
     device_id: &device
       selector:
         device:
-          integration: phomemo
+          integration: iprint
 print_image:
   fields:
     path:
@@ -36,5 +36,8 @@ print_image:
     density: *density
     device_id: *device
 feed:
+  fields:
+    device_id: *device
+clear_queue:
   fields:
     device_id: *device
