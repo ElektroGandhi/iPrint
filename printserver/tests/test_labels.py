@@ -144,3 +144,32 @@ def test_a_qr_code_from_a_square_grid_is_no_maxicode():
     """A QR code with 0.75 mm modules passed the first ring check (08.11.2026) and refused the whole document."""
     for source in labels.sources(return_document()):
         assert labels._bullseyes(np.array(source.image)) == []
+
+
+def test_every_slip_is_its_own_strip_and_reads_on_its_own():
+    """A label and its enclosure slip passed 50 cm together on a real DHL return (08.11.2026)."""
+    doc = labels.analyze(return_document())
+    label = labels.render(doc, doc.choose("label"))
+    assert len(label.slips) == 2
+    for slip, part in zip(label.slips, label.parts):
+        assert slip.height <= labels.MAX_ROWS
+        assert {(c.format, c.identifier, c.data) for c in part.codes} <= read_back(slip)
+
+
+def test_a_code_repeated_elsewhere_on_the_page_is_kept_as_a_double():
+    """A real DHL return label carries its DataMatrix twice. It is printed once, but the overview must blank both."""
+    import pypdfium2
+
+    pdf = label_pdf("Hermes")
+    page = pypdfium2.PdfDocument(pdf)[0]
+    picture = page.render(scale=300 / 72, grayscale=True).to_pil()
+    # paste the label's DataMatrix a second time, far from the first
+    dm = [h for h in zxingcpp.read_barcodes(picture) if h.format == F.DataMatrix][0]
+    xs = [p.x for p in (dm.position.top_left, dm.position.bottom_right)]
+    ys = [p.y for p in (dm.position.top_left, dm.position.bottom_right)]
+    box = (min(xs) - 5, min(ys) - 5, max(xs) + 5, max(ys) + 5)
+    picture.paste(picture.crop(box), (picture.width - (box[2] - box[0]) - 20, picture.height - (box[3] - box[1]) - 20))
+    buffer = io.BytesIO()
+    picture.save(buffer, "PNG")
+    doc = labels.analyze(buffer.getvalue())
+    assert [c.format for c in doc.doubles] == [F.DataMatrix]

@@ -33,7 +33,8 @@ LINEAR = {F.Code128, F.ITF, F.Code39, F.Code93, F.Codabar, F.EAN13, F.EAN8, F.UP
 MIN_DOTS = {"linear": 3, F.DataMatrix: 4, F.QRCode: 4, F.PDF417: 3, F.Aztec: 4}
 MAXICODE_MM = 28.14            # fixed by the standard: 1.11 in, including its margin
 QUIET_MODULES = 10             # Code 128 and ITF need ten modules of white on each side ...
-QUIET_MM = 8                   # ... and carriers ask for more: Hermes 8 mm, DHL 5 to 7 mm, DPD 5 mm (their label specs)
+QUIET_MM = 5                   # ... and carriers ask for more: DHL 5 mm to the edge, DPD 5 mm. Between two codes there
+                               # are 5 + 3 + 5 = 13 mm, more than DHL's 7 and Hermes' 8 mm to a neighbouring code.
 MIN_BAR_MM = 25                # DHL, DPD and Hermes: bars at least 25 mm tall
 READ_BACK_BLUR = 2.2           # px at 3 px per dot: a worn head on sticker paper
 CLUSTER_MM = 30                # codes closer than this belong to one label; a return PDF holds several parts
@@ -76,6 +77,7 @@ class Label:
     dots: Image.Image
     codes: list[Code]
     parts: list[Part] = field(default_factory=list)
+    slips: list[Image.Image] = field(default_factory=list)   # one per part: each is its own print job
 
 
 def _key(code) -> tuple:
@@ -247,12 +249,72 @@ def read_all(image: Image.Image) -> list:
     return hits
 
 
+TILE_MM, TILE_STEP_MM = 40, 20
+
+
+def _tiles(source: Source) -> list:
+    """The reader misses codes on a whole page: a small DataMatrix on a real DHL label (08.11.2026) only showed up on
+    a piece of the page. So the page is also read in overlapping tiles. Returns hits with their tile offset."""
+    mm_per_px = source.mm_per_px
+    size = round(TILE_MM / mm_per_px) if mm_per_px else 600
+    step = round(TILE_STEP_MM / mm_per_px) if mm_per_px else 300
+    width, height = source.image.size
+    out = []
+    for y in range(0, max(1, height - step), step):
+        for x in range(0, max(1, width - step), step):
+            crop = source.image.crop((x, y, min(width, x + size), min(height, y + size)))
+            out += [(hit, x, y) for hit in zxingcpp.read_barcodes(crop) if hit.valid]
+    return out
+
+
+class _Shifted:
+    """A hit from a tile, with its position moved into page coordinates."""
+
+    class _P:
+        def __init__(self, x, y):
+            self.x, self.y = x, y
+
+    class _Pos:
+        pass
+
+    def __init__(self, hit, dx: int, dy: int) -> None:
+        self._hit = hit
+        pos = self._Pos()
+        for name in ("top_left", "top_right", "bottom_right", "bottom_left"):
+            point = getattr(hit.position, name)
+            setattr(pos, name, self._P(point.x + dx, point.y + dy))
+        self.position = pos
+
+    def __getattr__(self, name):
+        return getattr(self._hit, name)
+
+
 def find_codes(source: Source) -> list[Code]:
     found, seen = [], set()
     grey = np.array(source.image)
     # no physical size for a picture: work in source pixels and let MIN_DOTS decide the size
     mm_per_px = source.mm_per_px or 1.0
-    for item in read_all(source.image):
+    items = list(read_all(source.image))
+
+    def spot(hit) -> tuple[float, float]:
+        points = [hit.position.top_left, hit.position.bottom_right]
+        return (sum(p.x for p in points) / 2, sum(p.y for p in points) / 2)
+
+    placed = [(_key(i[0] if isinstance(i, tuple) else i), spot(i[0] if isinstance(i, tuple) else i)) for i in items]
+    near_px = 10 / (source.mm_per_px or 0.1)
+    for hit, dx, dy in _tiles(source):
+        if hit.format == F.MaxiCode:
+            continue
+        shifted = _Shifted(hit, dx, dy)
+        here = spot(shifted)
+        # the same code at the same spot was found already; the same code somewhere else is a repeat the document
+        # has to know about (a real DHL label carries its DataMatrix twice)
+        if any(key == _key(hit) and math.dist(here, there) < near_px for key, there in placed):
+            continue
+        placed.append((_key(hit), here))
+        items.append(shifted)
+    kept: list[tuple] = []
+    for item in items:
         if isinstance(item, tuple):   # a MaxiCode, located by its finder pattern
             hit, (bx0, by0, bx1, by1) = item
             if _key(hit) in seen:
@@ -265,8 +327,12 @@ def find_codes(source: Source) -> list[Code]:
                                (max(ys) + 1) * mm_per_px), 0.0, orientation=hit.orientation))
             continue
         hit = item
-        if not hit.valid or _key(hit) in seen:
+        # The same code at the same spot is one code found twice. The same code elsewhere is a repeat on the page (a
+        # real DHL label carries its DataMatrix twice): it goes through, and analyze() keeps it as a double so the
+        # overview blanks it too. Judged by content alone, the repeat was lost and showed up shrunk in the overview.
+        if not hit.valid or any(key == _key(hit) and math.dist(spot(hit), there) < near_px for key, there in kept):
             continue
+        kept.append((_key(hit), spot(hit)))
         seen.add(_key(hit))
         points = [hit.position.top_left, hit.position.top_right, hit.position.bottom_right, hit.position.bottom_left]
         xs, ys = [p.x for p in points], [p.y for p in points]
@@ -292,11 +358,12 @@ def find_codes(source: Source) -> list[Code]:
 
 
 def _dots_per_module(code: Code, has_size: bool) -> int:
-    minimum = MIN_DOTS["linear"] if code.format in LINEAR else MIN_DOTS.get(code.format, 4)
     if not has_size:
-        return minimum
-    # as large as on the original, rounded to whole dots; a hair below counts as equal (8.0 for 0.998 mm)
-    return max(minimum, math.ceil(code.module_mm * DOTS_PER_MM - 0.15))
+        return MIN_DOTS["linear"] if code.format in LINEAR else MIN_DOTS.get(code.format, 4)
+    # As large as on the original, rounded up to whole dots (a hair below counts as equal: 8.0 for 0.998 mm), and at
+    # least 2 dots. Not the carriers' 0.375 mm: DHL itself printed 0.325 and 0.227 mm on a real return label
+    # (08.11.2026), and blowing those up made the label 60 cm long.
+    return max(2, math.ceil(code.module_mm * DOTS_PER_MM - 0.15))
 
 
 def take_over(source: Source, code: Code) -> Image.Image:
@@ -433,21 +500,29 @@ def identifier(source: Source, code: Code) -> str:
     From the text beside the code: the PDF's text layer, or OCR for a picture. A token that is part of the code's own
     content wins. Without any text, a short code content is its own name.
     """
-    near = (code.box[0] - 20, code.box[1] - 20, code.box[2] + 20, code.box[3] + 20)
+    margin = 30
+    near = (code.box[0] - margin, code.box[1] - margin, code.box[2] + margin, code.box[3] + margin)
     text = ""
     if source.page is not None:
         height = source.page.get_height()
         text = source.page.get_textpage().get_text_bounded(
             near[0] * PT_PER_MM, height - near[3] * PT_PER_MM, near[2] * PT_PER_MM, height - near[1] * PT_PER_MM)
-    else:
+    def tokens(words: str) -> list[str]:
+        return [t for t in re.findall(r"[A-Za-z0-9]{8,40}", words) if re.search(r"\d", t)]
+
+    if not tokens(text):
+        # A label embedded as a picture has no text layer (the real DHL return label, 08.11.2026): read it.
         try:
             from .legibility import ocr
 
-            crop = source.image.crop([max(0, round(v)) for v in near])
+            mm_per_px = source.mm_per_px or 1.0
+            crop = source.image.crop([max(0, round(v / mm_per_px)) for v in near])
+            if code.orientation:
+                crop = crop.rotate(code.orientation, expand=True, fillcolor=255)   # text upright for the OCR
             text = " ".join(word.text for word in ocr(crop))
         except Exception:  # noqa: BLE001  no name is better than no slip
             text = ""
-    candidates = [t for t in re.findall(r"[A-Za-z0-9]{8,40}", text) if re.search(r"\d", t)]
+    candidates = tokens(text)
     if candidates:
         return max(candidates, key=lambda t: (t in code.text, len(t)))
     if len(code.text) <= 32 and code.text.isprintable() and "/" not in code.text:
@@ -498,6 +573,7 @@ class Document:
     """A file taken apart: its pages and the parts found on them."""
     pages: list[Source]
     parts: list[Part]
+    doubles: list[Code] = field(default_factory=list)   # skipped repeats: blanked in the overview all the same
 
     def kind(self, part: Part) -> str:
         """label: several codes, to stick on. shop: one 2D code, to show at a shop. code: one linear code, to enclose."""
@@ -520,14 +596,15 @@ class Document:
 def analyze(data: bytes) -> Document:
     """Find every code on every page and sort them into parts. Raises LabelError when there is nothing to print."""
     pages = sources(data)
-    codes, seen = [], set()
+    codes, seen, doubles = [], set(), []
     for number, source in enumerate(pages):
         for code in find_codes(source):
             key = (code.format, code.identifier, code.data)
+            code.page = number
             if key in seen:   # the same code twice, as on a receipt beside the label
+                doubles.append(code)
                 continue
             seen.add(key)
-            code.page = number
             codes.append(code)
     if not codes:
         raise LabelError("no_code")
@@ -548,7 +625,7 @@ def analyze(data: bytes) -> Document:
                     changed = True
                     break
     groups.sort(key=lambda part: (part[0].page, min(c.box[1] for c in part), min(c.box[0] for c in part)))
-    return Document(pages, [Part(g, names[id(g)], g[0].page) for g in groups])
+    return Document(pages, [Part(g, names[id(g)], g[0].page) for g in groups], doubles)
 
 
 def render(document: Document, parts: list[Part] | None = None, captions: bool = True) -> Label:
@@ -568,31 +645,46 @@ def render(document: Document, parts: list[Part] | None = None, captions: bool =
             else:
                 page_mm = (float(source.image.width), float(source.image.height))
             region = _region(part.codes, groups, page_mm)
-            slips.append([_caption("", counter), overview(source, part.codes, region)]
+            # a shrunk copy of a repeated code would sit in the overview: blank those as well (real DHL label)
+            blank = part.codes + [c for c in document.doubles if c.page == part.page]
+            slips.append([_caption("", counter), overview(source, blank, region)]
                          + [_centred(take_over(source, code)) for code in part.codes])
-    blocks = []
-    for number, slip in enumerate(slips):
-        if number:
-            blocks.append(_cut_line())
+    # Each slip is its own print job: they are cut apart anyway, and a label plus its enclosure slip passed 50 cm
+    # together on a real DHL return (08.11.2026). The limit and the read-back hold per slip.
+    printed = []
+    for part, slip in zip(parts, slips):
+        blocks = []
         for block_number, block in enumerate(slip):
             blocks.append(block)
             if block_number < len(slip) - 1:
                 blocks.append(Image.new("L", (WIDTH_DOTS, GAP), 255))
-    rows = sum(block.height for block in blocks)
-    if rows > MAX_ROWS:
-        raise LabelError("long", cm=f"{rows / DOTS_PER_MM / 10:.0f}")
-    strip = Image.new("L", (WIDTH_DOTS, rows), 255)
+        rows = sum(block.height for block in blocks)
+        if rows > MAX_ROWS:
+            raise LabelError("long", cm=f"{rows / DOTS_PER_MM / 10:.0f}")
+        strip = Image.new("L", (WIDTH_DOTS, rows), 255)
+        y = 0
+        for block in blocks:
+            strip.paste(block, (0, y))
+            y += block.height
+        dots = strip.convert("1", dither=Image.Dither.NONE)
+        found = read_back(dots)
+        missing = [code for code in part.codes if (code.format, code.identifier, code.data) not in found]
+        if missing:
+            raise LabelError("not_scanning", what=", ".join(c.format.name for c in missing))
+        printed.append(dots)
+    # one strip for the preview, with cut lines between the slips
+    pieces = []
+    for number, dots in enumerate(printed):
+        if number:
+            pieces.append(_cut_line())
+        pieces.append(dots.convert("L"))
+    whole = Image.new("L", (WIDTH_DOTS, sum(p.height for p in pieces)), 255)
     y = 0
-    for block in blocks:
-        strip.paste(block, (0, y))
-        y += block.height
-    dots = strip.convert("1", dither=Image.Dither.NONE)
+    for piece in pieces:
+        whole.paste(piece, (0, y))
+        y += piece.height
     codes = [code for part in parts for code in part.codes]
-    found = read_back(dots)
-    missing = [code for code in codes if (code.format, code.identifier, code.data) not in found]
-    if missing:
-        raise LabelError("not_scanning", what=", ".join(c.format.name for c in missing))
-    return Label(dots, codes, parts)
+    return Label(whole.convert("1", dither=Image.Dither.NONE), codes, parts, printed)
 
 
 def build(data: bytes) -> Label:

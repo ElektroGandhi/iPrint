@@ -144,7 +144,10 @@ class Service:
             status = ipp.DOCUMENT_FORMAT_ERROR if result.broken else ipp.DOCUMENT_UNPRINTABLE
             return self._fail(job, status, result.refused, "document-unprintable-error")
         try:
-            self.handoff.send(result.dots, job.name, job.queue)
+            slips = result.slips or [result.dots]
+            for number, slip in enumerate(slips, start=1):
+                name = job.name if len(slips) == 1 else f"{job.name} {number}/{len(slips)}"
+                self.handoff.send(slip, name, job.queue)
         except QueueFull:
             return self._fail(job, ipp.NOT_ACCEPTING, say(self.language, "full"), "aborted-by-system")
         except Offline as err:

@@ -18,6 +18,7 @@ class Result:
     broken: bool = False
     document: Document | None = None
     picture: Image.Image | None = None
+    slips: list = None   # shipping label slips, each its own print job
 
 
 def process_label(data: bytes, language: str) -> Result:
@@ -30,12 +31,13 @@ def process_label(data: bytes, language: str) -> Result:
         label = render(document)
     except LabelError as err:
         return Result(refused=say(language, f"label_{err.key}", **err.values), broken=err.key == "broken")
-    return Result(dots=label.dots)
+    return Result(dots=label.dots, slips=label.slips)
 
 
 def finish_label(document: Document, way: str, captions: bool, language: str) -> Result:
     try:
-        return Result(dots=render(document, document.choose(way), captions).dots)
+        label = render(document, document.choose(way), captions)
+        return Result(dots=label.dots, slips=label.slips)
     except LabelError as err:
         return Result(refused=say(language, f"label_{err.key}", **err.values))
 

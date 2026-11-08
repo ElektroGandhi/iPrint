@@ -47,7 +47,7 @@ def test_choice_page_over_http_then_print(running):
     status, kind, body = get(base + path)
     assert status == 200 and "text/html" in kind and "QR-Code für den Shop".encode() in body
     status, text = post(base + path, {"way": "shop", "captions": "1"})
-    assert status == 200 and "Wird gedruckt" in text and len(service.handoff.sent) == 1
+    assert status == 200 and "Wird gedruckt" in text and len(service.handoff.sent) == 2
     status, _ = post(base + path, {"way": "shop"})
     assert status == 404
 

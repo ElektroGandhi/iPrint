@@ -91,11 +91,11 @@ def test_a_return_document_with_both_ways_waits_for_a_choice():
     html = page(token, svc.choices.get(token), "de")
     assert "QR-Code für den Shop" in html and "Etikett selbst aufkleben" in html and 'type="checkbox"' in html
     ok, _ = svc.decide(token, "shop", True)
-    assert ok and len(svc.handoff.sent) == 1
-    found = {key[0].name for key in labels.read_back(svc.handoff.sent[0])}
-    assert found == {"QRCode", "Code128"}      # the shop code and the code to enclose, no label
+    assert ok and len(svc.handoff.sent) == 2   # two slips, each its own job: shop code, code to enclose
+    found = [{key[0].name for key in labels.read_back(slip)} for slip in svc.handoff.sent]
+    assert found == [{"QRCode"}, {"Code128"}]   # each slip reads on its own, and no label among them
     again, text = svc.decide(token, "shop", True)
-    assert not again and not svc.handoff.sent[1:]   # sending the form twice prints nothing twice
+    assert not again and len(svc.handoff.sent) == 2   # sending the form twice prints nothing twice
 
 
 def test_the_label_way_prints_the_label_and_the_code_to_enclose():
@@ -103,5 +103,5 @@ def test_the_label_way_prints_the_label_and_the_code_to_enclose():
     handle(svc, request(ipp.PRINT_JOB, [(ipp.MIME, "document-format", "application/pdf")], return_document()), "label")
     token = svc.handoff.asked[0].rsplit("/", 1)[1]
     ok, _ = svc.decide(token, "label", False)
-    found = {key[0].name for key in labels.read_back(svc.handoff.sent[0])}
-    assert ok and found == {"Code128", "DataMatrix"} and "QRCode" not in found
+    found = set().union(*({key[0].name for key in labels.read_back(slip)} for slip in svc.handoff.sent))
+    assert ok and len(svc.handoff.sent) == 2 and found == {"Code128", "DataMatrix"}
