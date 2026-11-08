@@ -137,13 +137,16 @@ aus, solange du ihn nicht einschaltest. Im Druckdialog erscheinen zwei Drucker:
 
 | Drucker | Was er macht |
 |---|---|
-| **iPrint PHOMEMO** | Text und Bilder. Lehnt ab, was auf 48 mm nicht lesbar wäre. **Fotos** warten auf eine kleine Bearbeitung: Helligkeit, Kontrast, Drehen, Zuschneiden, Raster oder harte Kanten. |
+| **iPrint PHOMEMO** | Text und Bilder. Lehnt ab, was auf 48 mm nicht lesbar wäre. Fotos druckt er sofort, auf Wunsch erst nach einer kleinen Bearbeitung (siehe unten). |
 | **iPrint PHOMEMO Versandetikett** | Rücksende- und Versandetiketten. Jeder Code wird in voller Größe übernommen statt verkleinert und nach dem Druck geprüft. |
 
 **Rücksende-PDFs** (etwa von Amazon) zerlegt der Etiketten-Drucker selbst: das Etikett zum Aufkleben, den QR-Code für den
 Shop mit seiner Kennung und den Code zum Beilegen, getrennt durch Schnittlinien. Bietet ein PDF beides an, QR-Code für den
-Shop **und** Etikett zum Selbstdrucken, fragt er nach. Dann kommt ein Hinweis in Home Assistant und auf Wunsch ein Push aufs
-Handy, mit Link auf eine Seite mit Vorschau beider Wege und einem Häkchen für die Kennungen.
+Shop **und** Etikett zum Selbstdrucken, druckt er den QR-Code mit Kennung: der offizielle Weg und der kürzeste Zettel.
+
+**Rückfragen (aus, Vorschau):** Mit `IPRINT_ASK: "1"` wartet ein solches PDF auf eine Auswahlseite (QR-Code oder Etikett,
+Häkchen für die Kennungen) und ein Foto auf eine kleine Bearbeitung. Den Link zeigt Home Assistant als Hinweis. Standard
+ist aus: Eine Rückfrage, die niemand sieht, hält den Auftrag sonst fest.
 
 > ⚠️ **Verkleinerte oder umgestaltete Etiketten sind nicht bei jedem Paketdienst erlaubt.** DHL schließt das ausdrücklich
 > aus und kann ein Nachentgelt verlangen. Der QR-Weg ist dagegen der offizielle: Im Shop wird das Etikett gedruckt.

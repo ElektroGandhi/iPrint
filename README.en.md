@@ -137,13 +137,17 @@ part stays switched off unless you turn it on. Two printers appear in the print 
 
 | Printer | What it does |
 |---|---|
-| **iPrint PHOMEMO** | Text and pictures. Refuses what would be unreadable at 48 mm. **Photos** wait for a little editing: brightness, contrast, turn, crop, dots or hard edges. |
+| **iPrint PHOMEMO** | Text and pictures. Refuses what would be unreadable at 48 mm. Photos print at once, or on request after a little editing (see below). |
 | **iPrint PHOMEMO shipping label** | Return and shipping labels. Every code is taken over at full size instead of shrunk, and checked after printing. |
 
 **Return PDFs** (from Amazon, for example) are taken apart by the label printer itself: the label to stick on, the QR code
 for the shop with its identifier, and the code to put in the parcel, with cut lines between them. If a PDF offers both, a
-QR code for the shop **and** a label to print yourself, it asks. Home Assistant shows a notification, and on request a push
-reaches your phone, linking to a page with a preview of both ways and a box for the identifiers.
+QR code for the shop **and** a label to print yourself, it prints the QR code with its identifier: the official way and the
+shortest slip.
+
+**Questions (off, preview):** With `IPRINT_ASK: "1"`, such a PDF waits for a choice page (QR code or label, a box for the
+identifiers) and a photo for a little editing. Home Assistant shows the link as a notification. Off by default: a
+question nobody sees holds the job otherwise.
 
 > ⚠️ **Not every carrier allows shrunk or rearranged labels.** DHL rules it out explicitly and may charge for it. The QR
 > code way is the official one: the shop prints the label.

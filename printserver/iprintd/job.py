@@ -21,13 +21,21 @@ class Result:
     slips: list = None   # shipping label slips, each its own print job
 
 
-def process_label(data: bytes, language: str) -> Result:
+# Without a question, a return offering both ways prints the shop QR code with its identifier: the official way of
+# every carrier, the shortest slip, and DHL forbids changed labels (decided 08.11.2026).
+DEFAULT_WAY = "shop"
+
+
+def process_label(data: bytes, language: str, ask: bool = False) -> Result:
     """Shipping label mode: codes at full size, read back identically, or a refusal that says why.
-    A document offering both a shop QR code and a label comes back undecided, with `document` set."""
+    A document offering both a shop QR code and a label comes back undecided with `ask`, with `document` set;
+    without `ask` it prints the shop way."""
     try:
         document = analyze(data)
         if document.needs_choice:
-            return Result(document=document)
+            if ask:
+                return Result(document=document)
+            return finish_label(document, DEFAULT_WAY, True, language)
         label = render(document)
     except LabelError as err:
         return Result(refused=say(language, f"label_{err.key}", **err.values), broken=err.key == "broken")
@@ -42,7 +50,8 @@ def finish_label(document: Document, way: str, captions: bool, language: str) ->
         return Result(refused=say(language, f"label_{err.key}", **err.values))
 
 
-def process(data: bytes, mime: str, language: str) -> Result:
+def process(data: bytes, mime: str, language: str, ask: bool = False) -> Result:
+    """`ask`: a lone photo waits for the editor page instead of printing at once."""
     try:
         pages = load_pages(data, mime)
     except DocumentError:
@@ -55,7 +64,7 @@ def process(data: bytes, mime: str, language: str) -> Result:
         if verdict.dots is None:
             return Result(refused=for_page(language, verdict))
         checked.append(verdict)
-    if len(checked) == 1 and not checked[0].is_text:
+    if ask and len(checked) == 1 and not checked[0].is_text:
         return Result(picture=pages[0])   # a photo: the person gets to adjust it first (asked for 08.11.2026)
     strip = assemble(checked)
     if strip.height > MAX_ROWS:

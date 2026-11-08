@@ -37,8 +37,12 @@ class Job:
 class Service:
     """Everything shared between requests. One job goes through OCR at a time: the machine has other work."""
 
-    def __init__(self, handoff: Handoff, address: str, port: int, unique: uuid.UUID, language: str) -> None:
+    def __init__(self, handoff: Handoff, address: str, port: int, unique: uuid.UUID, language: str,
+                 ask: bool = False) -> None:
         self.handoff = handoff
+        # Off by default since 0.2.0b3: a question nobody sees holds the job for ever (08.11.2026). With it on,
+        # returns wait for a choice page and photos for the editor page.
+        self.ask = ask
         self.uri = f"ipp://{address}:{port}/ipp/print"
         self.uris = {queue: f"ipp://{address}:{port}/ipp/{queue}" for queue in ("print", "label")}
         self.admin = f"http://{address}:{port}/"
@@ -78,8 +82,8 @@ class Service:
         job.state = PROCESSING
         with self._work:
             try:
-                result = (process_label(data, self.language) if job.queue == "label"
-                          else process(data, mime, self.language))
+                result = (process_label(data, self.language, self.ask) if job.queue == "label"
+                          else process(data, mime, self.language, self.ask))
             except Exception:  # noqa: BLE001  OCR broke: say so, and never let a document through unchecked
                 _LOGGER.exception("job %s could not be checked", job.id)
                 return self._fail(job, ipp.INTERNAL_ERROR, say(self.language, "broken"), "aborted-by-system")
@@ -109,6 +113,7 @@ class Service:
         """The editor page was sent: print the photo with these settings."""
         waiting = self.choices.get(token)
         if waiting is None or waiting.picture is None:
+            _LOGGER.info("photo %s… came in, but nothing waits for it", token[:6])
             return False, say(self.language, "gone")
         dots = editor.apply(waiting.picture, editor.Settings.parse(values))
         if editor.too_long(dots):
@@ -129,7 +134,9 @@ class Service:
         """The choice page was sent. Returns success and the text to show."""
         waiting = self.choices.take(token)
         if waiting is None or waiting.document is None or way not in ("shop", "label"):
+            _LOGGER.info("choice %s… came in, but nothing waits for it", token[:6])
             return False, say(self.language, "gone")
+        _LOGGER.info("job %s '%s' chosen: %s, identifier %s", waiting.job_id, waiting.label, way, captions)
         job = self.jobs.get(waiting.job_id) or Job(waiting.job_id, waiting.label, HELD, queue="label")
         job.state = PROCESSING
         with self._work:
@@ -149,6 +156,7 @@ class Service:
                 name = job.name if len(slips) == 1 else f"{job.name} {number}/{len(slips)}"
                 self.handoff.send(slip, name, job.queue)
         except QueueFull:
+            _LOGGER.warning("job %s '%s': the queue in Home Assistant is full", job.id, job.name)
             return self._fail(job, ipp.NOT_ACCEPTING, say(self.language, "full"), "aborted-by-system")
         except Offline as err:
             _LOGGER.error("handing job %s over failed: %s", job.id, err)

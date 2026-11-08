@@ -17,7 +17,7 @@ from test_queues import Collect, request
 
 @pytest.fixture
 def running():
-    service = Service(Collect(), "127.0.0.1", 0, uuid.uuid4(), "de")
+    service = Service(Collect(), "127.0.0.1", 0, uuid.uuid4(), "de", ask=True)
     server = make_server(service, 0)
     port = server.server_address[1]
     service.admin = f"http://127.0.0.1:{port}/"

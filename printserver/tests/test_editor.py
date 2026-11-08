@@ -1,4 +1,4 @@
-"""Photos wait for a little editing; text documents still print at once."""
+"""With questions on, photos wait for a little editing; text documents still print at once. Off: all at once."""
 import io
 import uuid
 
@@ -17,8 +17,8 @@ def photo(width=800, height=500):
     return buffer.getvalue()
 
 
-def service():
-    return Service(Collect(), "192.0.2.10", 631, uuid.uuid4(), "de")
+def service(ask=True):
+    return Service(Collect(), "192.0.2.10", 631, uuid.uuid4(), "de", ask)
 
 
 def test_settings_are_clamped_and_unknown_values_ignored():
@@ -83,3 +83,11 @@ def test_a_text_note_still_prints_at_once():
     page_with_text(1200, 110, lines=4).save(buffer, "PNG")
     answer = handle(svc, request(ipp.PRINT_JOB, [(ipp.MIME, "document-format", "image/png")], buffer.getvalue()), "print")
     assert status(answer) == ipp.OK and len(svc.handoff.sent) == 1 and not svc.handoff.asked
+
+
+def test_without_questions_a_photo_prints_at_once():
+    """The default since 0.2.0b3: nobody has to open a page, so nothing can wait for ever."""
+    svc = service(ask=False)
+    answer = handle(svc, request(ipp.PRINT_JOB, [(ipp.MIME, "document-format", "image/jpeg")], photo()), "print")
+    assert status(answer) == ipp.OK
+    assert not svc.handoff.asked and len(svc.handoff.sent) == 1 and svc.handoff.sent[0].width == 384

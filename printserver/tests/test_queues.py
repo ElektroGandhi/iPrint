@@ -24,8 +24,8 @@ class Collect:
         self.refused.append(reason)
 
 
-def service(language="de"):
-    return Service(Collect(), "192.0.2.10", 631, uuid.uuid4(), language)
+def service(language="de", ask=False):
+    return Service(Collect(), "192.0.2.10", 631, uuid.uuid4(), language, ask)
 
 
 def request(operation, attrs=(), doc=b""):
@@ -80,7 +80,7 @@ def test_a_letter_sent_to_the_label_queue_is_refused_with_a_reason():
 
 def test_a_return_document_with_both_ways_waits_for_a_choice():
     """Asked for 08.11.2026: shop QR code or label to print yourself, then ask. Nothing is printed before."""
-    svc = service()
+    svc = service(ask=True)
     answer = handle(svc, request(ipp.PRINT_JOB, [(ipp.NAME, "job-name", "Ruecksendung"),
                                                  (ipp.MIME, "document-format", "application/pdf")], return_document()), "label")
     assert status(answer) == ipp.OK
@@ -99,9 +99,20 @@ def test_a_return_document_with_both_ways_waits_for_a_choice():
 
 
 def test_the_label_way_prints_the_label_and_the_code_to_enclose():
-    svc = service()
+    svc = service(ask=True)
     handle(svc, request(ipp.PRINT_JOB, [(ipp.MIME, "document-format", "application/pdf")], return_document()), "label")
     token = svc.handoff.asked[0].rsplit("/", 1)[1]
     ok, _ = svc.decide(token, "label", False)
     found = set().union(*({key[0].name for key in labels.read_back(slip)} for slip in svc.handoff.sent))
     assert ok and len(svc.handoff.sent) == 2 and found == {"Code128", "DataMatrix"}
+
+
+def test_without_questions_a_return_prints_the_shop_way_at_once():
+    """The default since 0.2.0b3 (decided 08.11.2026): a question nobody saw held a real return for ever."""
+    svc = service()
+    answer = handle(svc, request(ipp.PRINT_JOB, [(ipp.NAME, "job-name", "Ruecksendung"),
+                                                 (ipp.MIME, "document-format", "application/pdf")], return_document()), "label")
+    assert status(answer) == ipp.OK and b"job-hold-until-specified" not in answer
+    assert not svc.handoff.asked and len(svc.handoff.sent) == 2
+    found = [{key[0].name for key in labels.read_back(slip)} for slip in svc.handoff.sent]
+    assert found == [{"QRCode"}, {"Code128"}]   # shop code with its identifier, code to enclose; no label

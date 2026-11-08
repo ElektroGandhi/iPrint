@@ -19,10 +19,11 @@ def main() -> None:
     url = Path(os.environ["IPRINT_WEBHOOK_FILE"]).read_text().strip()
     # Stable from the address: clients recognise the printer again after an update.
     unique = uuid.uuid5(uuid.NAMESPACE_URL, f"iprint:{address}")
-    service = Service(Handoff(url), address, port, unique, language)
+    ask = os.environ.get("IPRINT_ASK", "0").strip().lower() in ("1", "true", "yes", "on")
+    service = Service(Handoff(url), address, port, unique, language, ask)
     server = make_server(service, port)
     zeroconf = announce(address, port, unique, service.admin, language)
-    logging.getLogger("iprintd").info("listening on %s", service.uri)
+    logging.getLogger("iprintd").info("listening on %s, questions %s", service.uri, "on" if ask else "off")
     try:
         server.serve_forever()
     finally:

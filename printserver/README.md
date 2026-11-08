@@ -45,16 +45,21 @@ shrinking it makes Code 128 unreadable: in tests, every Code 128 failed at 0.18 
   must give the same format, symbology identifier and bytes, or the job is refused.
 - A **return PDF** is taken apart into slips with cut lines: the label with its addresses, a QR code for the shop with
   its identifier printed above it, and the code to put inside the parcel.
-- If the PDF offers both a **shop QR code** and a **label to print yourself**, the job waits. Home Assistant shows a
-  notification (and a push if set up) with a link to a page that previews both ways, with a box for the identifiers.
+- If the PDF offers both a **shop QR code** and a **label to print yourself**, it prints the shop QR code with its
+  identifier. With questions on (`IPRINT_ASK`, below), the job waits instead: Home Assistant shows a notification (and a
+  push if set up) with a link to a page that previews both ways, with a box for the identifiers.
 
 > ⚠️ Not every carrier allows a changed label. DHL rules out scaling and changed labels explicitly and may charge for a
 > code it cannot read. The shop QR code is the official way. Test one parcel per carrier before you rely on this.
 
 ## Photos
 
-On **iPrint PHOMEMO**, a photo waits for a little editing instead of printing at once: dots or hard edges, brightness,
-contrast, turn, width and cropping. The preview shows the printer's own dots. Text documents still print straight away.
+Photos print at once. With questions on (`IPRINT_ASK`), a photo on **iPrint PHOMEMO** waits for a little editing
+instead: dots or hard edges, brightness, contrast, turn, width and cropping. The preview shows the printer's own dots.
+Text documents always print straight away.
+
+> Questions are off by default since 0.2.0b3. A job that waits for a page nobody opens never prints, and the push to the
+> phone that sent the job is not built yet.
 
 ## Setup
 
@@ -81,6 +86,7 @@ contrast, turn, width and cropping. The preview shows the printer's own dots. Te
        environment:
          IPRINT_ADDRESS: 192.168.1.50      # this container's address
          IPRINT_LANGUAGE: en               # or de
+        IPRINT_ASK: "0"                   # "1": choice page for returns, editor for photos (preview)
          IPRINT_WEBHOOK_FILE: /run/webhook_url
        volumes:
          - ./webhook_url:/run/webhook_url:ro

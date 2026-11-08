@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+0.2.0b3: questions are off by default (`IPRINT_ASK`). A return offering both ways prints the shop QR code with its
+identifier, photos print at once. A real return waited for a choice nobody saw. Every outcome of a choice is logged now.
+
 Optional print server (beta): AirPrint and IPP, refuses what would be unreadable. Off unless switched on.
 Shipping label printer: codes taken over at full size, return PDFs split into slips, a choice page when a PDF offers
 both a shop QR code and a label. Photos wait for a little editing. Push for questions. Label queue holds 10.
