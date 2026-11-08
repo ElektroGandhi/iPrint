@@ -304,9 +304,11 @@ class Handler(BaseHTTPRequestHandler):
             ok, why = self.service.healthy()
             self._send(200 if ok else 503, "text/plain", why.encode())
         else:
-            page = "<!doctype html><meta charset=utf-8><title>iPrint</title><h1>iPrint PHOMEMO</h1><p>Network printer. " \
+            # not named "page": that name is the choice page function, and a local of the same name hid it from the
+            # whole method, so every choice page failed (found live on 08.11.2026)
+            home = "<!doctype html><meta charset=utf-8><title>iPrint</title><h1>iPrint PHOMEMO</h1><p>Network printer. " \
                    f"Add <code>{self.service.uri}</code>, or look for it in your print dialog.</p>"
-            self._send(200, "text/html; charset=utf-8", page.encode())
+            self._send(200, "text/html; charset=utf-8", home.encode())
 
     def do_POST(self) -> None:  # noqa: N802
         picture = self._picture_path()
