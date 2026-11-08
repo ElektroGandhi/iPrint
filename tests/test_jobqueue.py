@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from iprint.jobqueue import MAX_JOBS, Job, JobQueue, QueueFull
+from iprint.jobqueue import MAX_JOBS, MAX_LABEL_JOBS, Job, JobQueue, QueueFull
 from iprint.printer import PrinterError, PrinterNotReady, PrinterSilent, PrinterUnreachable
 
 
@@ -112,3 +112,21 @@ def test_clear():
     queue = filled("a")
     queue.clear()
     assert len(queue) == 0
+
+
+def test_labels_get_twice_the_room_and_do_not_eat_the_normal_queue():
+    """Asked for 08.11.2026: the label queue about twice as large."""
+    assert MAX_LABEL_JOBS == 2 * MAX_JOBS
+    queue = JobQueue()
+    for i in range(MAX_LABEL_JOBS):
+        queue.add(Job(b"\x00" * 48, 1, "dark", f"label{i}", "t", "label"))
+    with pytest.raises(QueueFull):
+        queue.add(Job(b"\x00" * 48, 1, "dark", "one more", "t", "label"))
+    queue.add(job("normal"))    # a full label queue leaves room for a normal print
+    assert len(queue) == MAX_LABEL_JOBS + 1
+
+
+def test_kind_survives_a_restart():
+    import json
+    queue = JobQueue([Job(b"\x00" * 48, 1, "dark", "l", "t", "label")])
+    assert JobQueue.from_list(json.loads(json.dumps(queue.to_list()))).jobs[0].kind == "label"

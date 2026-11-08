@@ -26,6 +26,10 @@ _LOGGER = logging.getLogger(__name__)
 T = TypeVar("T")
 
 
+class QueueFullError(HomeAssistantError):
+    """The job is lost, and the caller must hear it."""
+
+
 class IPrintCoordinator(DataUpdateCoordinator[Status]):
     def __init__(self, hass: HomeAssistant, entry: ConfigEntry, address: str) -> None:
         super().__init__(hass, _LOGGER, config_entry=entry, name=DOMAIN,
@@ -78,22 +82,23 @@ class IPrintCoordinator(DataUpdateCoordinator[Status]):
                 await self._async_drain()
             return status
 
-    def _new_job(self, rows: bytes, count: int, density: str, label: str) -> Job:
-        return Job(rows, count, density, label[:60], dt_util.utcnow().isoformat())
+    def _new_job(self, rows: bytes, count: int, density: str, label: str, kind: str = "print") -> Job:
+        return Job(rows, count, density, label[:60], dt_util.utcnow().isoformat(), kind)
 
-    async def async_print_image(self, image: Image.Image, density: str | None = None, label: str = "") -> None:
+    async def async_print_image(self, image: Image.Image, density: str | None = None, label: str = "",
+                                kind: str = "print") -> None:
         """Print now if possible, otherwise wait in the queue. Raises only when the job is really lost."""
         rows, count = await self._run(to_rows, image)
         density = density or self.density
         async with self._lock:
             if len(self.queue):   # keep the order: others were first
-                await self._async_enqueue(self._new_job(rows, count, density, label))
+                await self._async_enqueue(self._new_job(rows, count, density, label, kind))
                 return
             try:
                 status = await self._run(self.printer.print_rows, rows, count, density, self.last_update_success)
             except (PrinterNotReady, PrinterUnreachable) as err:
                 _LOGGER.info("Queued print job '%s': %s", label, err)
-                await self._async_enqueue(self._new_job(rows, count, density, label))
+                await self._async_enqueue(self._new_job(rows, count, density, label, kind))
                 self.update_interval = self._away_interval()
                 self._schedule_refresh()  # a new interval only applies to the next run; the planned one may be minutes off
                 return
@@ -105,7 +110,7 @@ class IPrintCoordinator(DataUpdateCoordinator[Status]):
         try:
             self.queue.add(job)
         except QueueFull as err:
-            raise HomeAssistantError(str(err)) from err
+            raise QueueFullError(str(err)) from err
         await self._async_save_queue()
         self.async_update_listeners()
 

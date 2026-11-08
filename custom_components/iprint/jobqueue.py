@@ -9,6 +9,7 @@ import zlib
 from .printer import PrinterError, PrinterNotReady, PrinterUnreachable
 
 MAX_JOBS = 5
+MAX_LABEL_JOBS = 10   # shipping labels pile up before a trip to the shop (asked for 08.11.2026)
 
 
 class QueueFull(Exception):
@@ -22,15 +23,16 @@ class Job:
     density: str
     label: str
     created: str
+    kind: str = "print"   # "label" for shipping labels from the print server
 
     def to_dict(self) -> dict:
         return {"rows": base64.b64encode(zlib.compress(self.rows)).decode(), "row_count": self.row_count,
-                "density": self.density, "label": self.label, "created": self.created}
+                "density": self.density, "label": self.label, "created": self.created, "kind": self.kind}
 
     @classmethod
     def from_dict(cls, data: dict) -> "Job":
         return cls(zlib.decompress(base64.b64decode(data["rows"])), data["row_count"], data["density"],
-                   data["label"], data["created"])
+                   data["label"], data["created"], data.get("kind", "print"))
 
 
 class JobQueue:
@@ -41,8 +43,9 @@ class JobQueue:
         return len(self.jobs)
 
     def add(self, job: Job) -> None:
-        if len(self.jobs) >= MAX_JOBS:
-            raise QueueFull(f"The print queue is full ({MAX_JOBS} jobs)")
+        limit = MAX_LABEL_JOBS if job.kind == "label" else MAX_JOBS
+        if sum(1 for j in self.jobs if j.kind == job.kind) >= limit:
+            raise QueueFull(f"The print queue is full ({limit} jobs)")
         self.jobs.append(job)
 
     def clear(self) -> None:
@@ -60,7 +63,7 @@ class JobQueue:
                 jobs.append(Job.from_dict(item))
             except (KeyError, TypeError, ValueError, zlib.error):
                 continue
-        return cls(jobs[:MAX_JOBS])
+        return cls(jobs[:MAX_JOBS + MAX_LABEL_JOBS])
 
     def drain(self, print_rows: Callable[[bytes, int, str], object], failed: Callable[[Job, str], None]) -> int:
         """Print in order until the queue is empty or the printer cannot go on. Returns the number printed.

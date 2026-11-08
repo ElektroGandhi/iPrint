@@ -102,6 +102,7 @@ flowchart LR
     E -- "jede Minute geprüft" --> B
 ```
 
+Versandetiketten aus dem Druckdienst bekommen doppelt so viel Platz: bis zu 10 neben den 5 übrigen.
 Du kannst also einen Auftrag schicken und den Drucker später einschalten. Etwa eine Minute nach dem Einschalten kommen wartende
 Aufträge in der Reihenfolge ihres Eingangs. Eine Aktion an einen abwesenden Drucker gilt deshalb als erfolgreich, sobald der Auftrag
 in der Warteschlange liegt: Der Sensor **Warteschlange** zeigt, was wartet, **Warteschlange leeren** entfernt es. Ein Auftrag, der
@@ -127,6 +128,25 @@ Sekunden klappte 3 von 15 Mal.
 
 Das ganze Protokoll steht in [docs/PROTOCOL.md](docs/PROTOCOL.md), auch was am echten Drucker gemessen und was nur aus der App
 gelesen wurde.
+
+## Vom Handy drucken (optional, Beta)
+
+Ein optionaler [Druckdienst-Container](printserver/README.md) macht den Drucker im Netz sichtbar, für iPhone (AirPrint),
+Android, Windows und Linux. Für alles oben brauchst du ihn nicht: Die Integration funktioniert allein, und dieser Teil bleibt
+aus, solange du ihn nicht einschaltest. Im Druckdialog erscheinen zwei Drucker:
+
+| Drucker | Was er macht |
+|---|---|
+| **iPrint PHOMEMO** | Text und Bilder. Lehnt ab, was auf 48 mm nicht lesbar wäre. **Fotos** warten auf eine kleine Bearbeitung: Helligkeit, Kontrast, Drehen, Zuschneiden, Raster oder harte Kanten. |
+| **iPrint PHOMEMO Versandetikett** | Rücksende- und Versandetiketten. Jeder Code wird in voller Größe übernommen statt verkleinert und nach dem Druck geprüft. |
+
+**Rücksende-PDFs** (etwa von Amazon) zerlegt der Etiketten-Drucker selbst: das Etikett zum Aufkleben, den QR-Code für den
+Shop mit seiner Kennung und den Code zum Beilegen, getrennt durch Schnittlinien. Bietet ein PDF beides an, QR-Code für den
+Shop **und** Etikett zum Selbstdrucken, fragt er nach. Dann kommt ein Hinweis in Home Assistant und auf Wunsch ein Push aufs
+Handy, mit Link auf eine Seite mit Vorschau beider Wege und einem Häkchen für die Kennungen.
+
+> ⚠️ **Verkleinerte oder umgestaltete Etiketten sind nicht bei jedem Paketdienst erlaubt.** DHL schließt das ausdrücklich
+> aus und kann ein Nachentgelt verlangen. Der QR-Weg ist dagegen der offizielle: Im Shop wird das Etikett gedruckt.
 
 ## Gut zu wissen
 

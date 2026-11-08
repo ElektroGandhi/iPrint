@@ -1,0 +1,111 @@
+"""What a person reads when a job is refused. Client dialogs cut messages off, so the point comes first."""
+from __future__ import annotations
+
+from .legibility import DOTS_PER_MM, MIN_WORD_DOTS, Page
+
+MIN_MM = f"{MIN_WORD_DOTS / DOTS_PER_MM:.1f}"
+TEXT = {
+    "de": {
+        "small": "Abgelehnt: Schrift wäre zu klein. Etwa {size} mm hoch, nötig sind {min} mm.",
+        "unreadable": "Abgelehnt: Auf 48 mm Breite nicht lesbar. Nur {percent} % der Wörter blieben erkennbar.",
+        "pages": "Abgelehnt: {pages} Seiten, höchstens {max} sind möglich.",
+        "long": "Abgelehnt: zu lang. {cm} cm, höchstens {max} cm sind möglich.",
+        "broken": "Abgelehnt: Die Datei lässt sich nicht lesen.",
+        "full": "Abgelehnt: Die Warteschlange ist voll.",
+        "offline": "Nicht gedruckt: Home Assistant ist nicht erreichbar.",
+        "title": "Druckauftrag abgelehnt",
+        "label_no_code": "Abgelehnt: Auf dem Etikett ist kein Versandcode zu finden.",
+        "label_several": "Abgelehnt: {pages} Seiten mit Versandcodes. Bitte ein Etikett pro Auftrag.",
+        "label_broken": "Abgelehnt: Die Etikett-Datei lässt sich nicht lesen.",
+        "label_angle": "Abgelehnt: Ein Code steht schräg auf dem Etikett und lässt sich nicht sauber übernehmen.",
+        "label_maxicode": "Abgelehnt: Der MaxiCode ist zu sehen, lässt sich aber nicht lesen.",
+        "label_too_large": "Abgelehnt: Ein {what}-Code ist in beiden Richtungen größer als 48 mm.",
+        "label_long": "Abgelehnt: Das Etikett würde {cm} cm lang, höchstens 50 cm sind möglich.",
+        "label_not_scanning": "Abgelehnt: Nach dem Druck wäre ein Code nicht lesbar ({what}).",
+        "wait_choice": "Wartet auf deine Auswahl: {url}",
+        "page_title": "Was soll gedruckt werden?",
+        "page_intro": "In „{label}“ stehen zwei Wege. Wähle einen, der Code zum Beilegen kommt in beiden Fällen mit.",
+        "way_shop": "QR-Code für den Shop",
+        "way_shop_hint": "Im Shop oder an der Packstation zeigen, dort wird das Etikett gedruckt.",
+        "way_label": "Etikett selbst aufkleben",
+        "way_label_hint": "Alle Codes in voller Größe. Beta: DHL erlaubt veränderte Etiketten eigentlich nicht.",
+        "captions": "Kennung über jeden einzelnen Code drucken",
+        "print": "Drucken",
+        "printed": "Wird gedruckt.",
+        "gone": "Diese Auswahl gibt es nicht mehr. Sie wurde schon getroffen oder ist abgelaufen.",
+        "wait_edit": "Wartet auf deine Bearbeitung: {url}",
+        "edit_title": "Foto vor dem Druck anpassen",
+        "edit_intro": "„{label}“. Die Vorschau zeigt genau die Punkte, die der Drucker bekommt.",
+        "edit_preview": "Vorschau des Ausdrucks",
+        "edit_mode": "Darstellung",
+        "edit_raster": "Raster (Fotos)",
+        "edit_kanten": "Harte Kanten (Zeichnungen, Text)",
+        "edit_brightness": "Helligkeit",
+        "edit_contrast": "Kontrast",
+        "edit_turn": "Drehen",
+        "edit_width": "Breite",
+        "edit_top": "Oben abschneiden",
+        "edit_bottom": "Unten abschneiden",
+        "edit_left": "Links abschneiden",
+        "edit_right": "Rechts abschneiden",
+        "edit_reset": "Zurücksetzen",
+        "edit_long": "Zu lang: Bitte zuschneiden oder schmaler drucken, höchstens 50 cm.",
+    },
+    "en": {
+        "small": "Refused: text would be too small. About {size} mm high, {min} mm needed.",
+        "unreadable": "Refused: not readable at 48 mm wide. Only {percent} % of the words stayed recognisable.",
+        "pages": "Refused: {pages} pages, the limit is {max}.",
+        "long": "Refused: too long. {cm} cm, the limit is {max} cm.",
+        "broken": "Refused: the file cannot be read.",
+        "full": "Refused: the print queue is full.",
+        "offline": "Not printed: Home Assistant cannot be reached.",
+        "title": "Print job refused",
+        "label_no_code": "Refused: no shipping code found on the label.",
+        "label_several": "Refused: {pages} pages carry shipping codes. One label per job, please.",
+        "label_broken": "Refused: the label file cannot be read.",
+        "label_angle": "Refused: a code is printed at an angle on the label and cannot be taken over cleanly.",
+        "label_maxicode": "Refused: the MaxiCode is there but cannot be read.",
+        "label_too_large": "Refused: a {what} code is larger than 48 mm in both directions.",
+        "label_long": "Refused: the label would be {cm} cm long, the limit is 50 cm.",
+        "label_not_scanning": "Refused: after printing, a code would not scan ({what}).",
+        "wait_choice": "Waiting for your choice: {url}",
+        "page_title": "What should be printed?",
+        "page_intro": "“{label}” offers two ways. Pick one; the code to enclose comes with either.",
+        "way_shop": "QR code for the shop",
+        "way_shop_hint": "Show it at the shop or parcel locker, they print the label.",
+        "way_label": "Stick the label on yourself",
+        "way_label_hint": "All codes at full size. Beta: DHL does not actually allow changed labels.",
+        "captions": "Print the identifier above each single code",
+        "print": "Print",
+        "printed": "Printing.",
+        "gone": "This choice no longer exists. It was already made, or it expired.",
+        "wait_edit": "Waiting for your edit: {url}",
+        "edit_title": "Adjust the photo before printing",
+        "edit_intro": "“{label}”. The preview shows exactly the dots the printer will get.",
+        "edit_preview": "Preview of the print",
+        "edit_mode": "Look",
+        "edit_raster": "Dots (photos)",
+        "edit_kanten": "Hard edges (drawings, text)",
+        "edit_brightness": "Brightness",
+        "edit_contrast": "Contrast",
+        "edit_turn": "Turn",
+        "edit_width": "Width",
+        "edit_top": "Cut off top",
+        "edit_bottom": "Cut off bottom",
+        "edit_left": "Cut off left",
+        "edit_right": "Cut off right",
+        "edit_reset": "Reset",
+        "edit_long": "Too long: please crop or print narrower, 50 cm at most.",
+    },
+}
+
+
+def say(language: str, key: str, **values) -> str:
+    table = TEXT.get(language, TEXT["en"])
+    return table[key].format(min=MIN_MM, **values)
+
+
+def for_page(language: str, page: Page) -> str:
+    if page.reason == "small":
+        return say(language, "small", size=f"{page.median_mm:.1f}")
+    return say(language, "unreadable", percent=round(page.read_back * 100))

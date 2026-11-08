@@ -12,3 +12,7 @@ SERVICE_CLEAR_QUEUE = "clear_queue"
 
 DENSITIES = ("light", "normal", "dark", "darkest")
 DEFAULT_DENSITY = "dark"
+
+CONF_PRINT_SERVER = "print_server"
+CONF_WEBHOOK_ID = "webhook_id"
+CONF_NOTIFY = "notify"   # notify actions for questions from the print server, comma separated

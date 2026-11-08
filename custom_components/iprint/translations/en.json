@@ -138,5 +138,20 @@
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Network printing (beta)",
+        "description": "Only needed for the optional print server container. Without it, leave this off: everything else works the same. Address for the container, after your Home Assistant URL: {path}",
+        "data": {
+          "print_server": "Accept jobs from the print server",
+          "notify": "Push for questions (e.g. notify.mobile_app_my_phone)"
+        },
+        "data_description": {
+          "notify": "The print server asks when a return PDF offers two ways or a photo waits for your edit. Separate several with commas."
+        }
+      }
+    }
   }
 }

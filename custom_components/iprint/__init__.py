@@ -6,6 +6,7 @@ from pathlib import Path
 from PIL import Image, UnidentifiedImageError
 import voluptuous as vol
 
+from homeassistant.components import webhook as ha_webhook
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import ATTR_DEVICE_ID, CONF_ADDRESS, Platform
 from homeassistant.core import HomeAssistant, ServiceCall
@@ -14,9 +15,10 @@ from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.typing import ConfigType
 
-from .const import DENSITIES, DOMAIN, SERVICE_CLEAR_QUEUE, SERVICE_FEED, SERVICE_PRINT_IMAGE, SERVICE_PRINT_TEXT
+from .const import CONF_PRINT_SERVER, CONF_WEBHOOK_ID, DENSITIES, DOMAIN, SERVICE_CLEAR_QUEUE, SERVICE_FEED, SERVICE_PRINT_IMAGE, SERVICE_PRINT_TEXT
 from .coordinator import IPrintCoordinator
 from .render import render_image, render_text
+from .webhook import async_register as async_register_webhook
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.BUTTON, Platform.NOTIFY, Platform.SELECT, Platform.SENSOR]
 RETRY_AFTER_SETUP = 45
@@ -88,6 +90,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: IPrintConfigEntry) -> bo
     await coordinator.async_refresh()
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    if entry.options.get(CONF_PRINT_SERVER):
+        async_register_webhook(hass, coordinator, entry.options[CONF_WEBHOOK_ID])
+    entry.async_on_unload(entry.add_update_listener(_options_changed))
     if not coordinator.last_update_success:
         # The setup dialog has just closed its connection, and the printer refuses new ones for a while after that.
         async def _retry(_now) -> None:
@@ -97,7 +102,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: IPrintConfigEntry) -> bo
     return True
 
 
+async def _options_changed(hass: HomeAssistant, entry: IPrintConfigEntry) -> None:
+    await hass.config_entries.async_reload(entry.entry_id)
+
+
 async def async_unload_entry(hass: HomeAssistant, entry: IPrintConfigEntry) -> bool:
+    if entry.options.get(CONF_PRINT_SERVER):
+        ha_webhook.async_unregister(hass, entry.options[CONF_WEBHOOK_ID])
     unloaded = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
     if unloaded:
         await entry.runtime_data.async_close()

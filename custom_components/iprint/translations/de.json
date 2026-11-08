@@ -138,5 +138,20 @@
         }
       }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Drucken übers Netzwerk (Beta)",
+        "description": "Nur für den optionalen Druckdienst-Container nötig. Ohne ihn einfach auslassen, alles andere funktioniert genauso. Adresse für den Container, hinter der URL deines Home Assistant: {path}",
+        "data": {
+          "print_server": "Aufträge vom Druckdienst annehmen",
+          "notify": "Push für Rückfragen (z. B. notify.mobile_app_mein_handy)"
+        },
+        "data_description": {
+          "notify": "Der Druckdienst fragt nach, wenn ein Rücksende-PDF zwei Wege anbietet oder ein Foto auf deine Bearbeitung wartet. Mehrere Ziele mit Komma trennen."
+        }
+      }
+    }
   }
 }

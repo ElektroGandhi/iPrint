@@ -102,6 +102,7 @@ flowchart LR
     E -- "checked every minute" --> B
 ```
 
+Shipping labels from the print server get twice the room: up to 10, besides the other 5.
 So you can send a job and switch the printer on later. Within about a minute of switching on, waiting jobs print in the
 order they came in. An action on a printer that is away therefore succeeds as soon as the job is queued: the **Print queue**
 sensor shows what is waiting, and **Clear print queue** removes it. A job that loses its connection halfway is not repeated,
@@ -127,6 +128,25 @@ every few seconds succeeded 3 times in 15.
 
 The whole protocol is written down in [docs/PROTOCOL.md](docs/PROTOCOL.md), including what was measured on a real printer
 and what was only read from the app.
+
+## Print from your phone (optional, beta)
+
+An optional [print server container](printserver/README.md) makes the printer visible on the network, for iPhone
+(AirPrint), Android, Windows and Linux. You do not need it for anything above: the integration works on its own, and this
+part stays switched off unless you turn it on. Two printers appear in the print dialog:
+
+| Printer | What it does |
+|---|---|
+| **iPrint PHOMEMO** | Text and pictures. Refuses what would be unreadable at 48 mm. **Photos** wait for a little editing: brightness, contrast, turn, crop, dots or hard edges. |
+| **iPrint PHOMEMO shipping label** | Return and shipping labels. Every code is taken over at full size instead of shrunk, and checked after printing. |
+
+**Return PDFs** (from Amazon, for example) are taken apart by the label printer itself: the label to stick on, the QR code
+for the shop with its identifier, and the code to put in the parcel, with cut lines between them. If a PDF offers both, a
+QR code for the shop **and** a label to print yourself, it asks. Home Assistant shows a notification, and on request a push
+reaches your phone, linking to a page with a preview of both ways and a box for the identifiers.
+
+> ⚠️ **Not every carrier allows shrunk or rearranged labels.** DHL rules it out explicitly and may charge for it. The QR
+> code way is the official one: the shop prints the label.
 
 ## Good to know
 
